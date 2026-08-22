@@ -18,6 +18,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync main before calculation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --ff-only origin main
 
       - name: Download latest Lucky Numbers draws
         shell: bash
@@ -50,128 +58,40 @@ jobs:
             exit 1
           fi
 
-      - name: Merge new draws into archive
+      - name: Update fact, check old forecast, fix next forecast
+        shell: bash
+        env:
+          LUCKY_PAGE_FILE: /tmp/fortune-page1.json
+        run: |
+          set -euo pipefail
+          node scripts/fortune-cycle.mjs "$GITHUB_WORKSPACE"
+
+      - name: Commit complete cycle if changed
         shell: bash
         run: |
           set -euo pipefail
 
-          cat > /tmp/update-fortune.mjs <<'NODE'
-          import fs from 'node:fs';
-
-          const FILE = 'data/fortune-archive.csv';
-
-          function moscowParts(iso) {
-            const d = new Date(iso);
-            const parts = new Intl.DateTimeFormat('en-GB', {
-              timeZone: 'Europe/Moscow',
-              year: '2-digit',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false
-            }).formatToParts(d);
-
-            const get = t => parts.find(p => p.type === t)?.value;
-
-            return {
-              date: `${get('day')}.${get('month')}.${get('year')}`,
-              time: `${get('hour')}:${get('minute')}`
-            };
-          }
-
-          function ballsOf(doc) {
-            const byPos = new Map(
-              (doc.played || []).map(x => [
-                Number(x.lototronId),
-                Number(x.balls?.[0])
-              ])
-            );
-
-            return [0,1,2,3,4,5].map(i => byPos.get(i));
-          }
-
-          const existing = fs.readFileSync(FILE, 'utf8').replace(/^\uFEFF/, '');
-          const lines = existing.split(/\r?\n/).filter(Boolean);
-
-          const header = lines.shift() || 'Номер тиража,Дата,Шары';
-          const byNumber = new Map();
-
-          for (const line of lines) {
-            if (line === 'lucky-numbers.ru') continue;
-
-            const rawNumber = line.split(',')[0]?.trim();
-
-            if (/^\d+$/.test(rawNumber)) {
-              byNumber.set(String(Number(rawNumber)), line);
-            }
-          }
-
-          const data = JSON.parse(
-            fs.readFileSync('/tmp/fortune-page1.json', 'utf8')
-          );
-
-          if (!Array.isArray(data.docs)) {
-            throw new Error('Lucky page 1: docs[] missing');
-          }
-
-          let added = 0;
-
-          for (const doc of data.docs) {
-            const numberKey = String(Number(doc.number));
-
-            if (!numberKey || numberKey === 'NaN') continue;
-
-            const balls = ballsOf(doc);
-
-            if (balls.some(x => !Number.isInteger(x) || x < 1 || x > 6)) {
-              throw new Error(`Draw ${doc.number}: invalid six-position result`);
-            }
-
-            const {date, time} = moscowParts(doc.date);
-            const draw = String(doc.number).padStart(6, '0');
-
-            const row =
-              `${draw},${date}, ${time},` +
-              `${balls[0]},+,${balls[1]},+,${balls[2]},+,` +
-              `${balls[3]},+,${balls[4]},+,${balls[5]}`;
-
-            if (!byNumber.has(numberKey)) added++;
-
-            byNumber.set(numberKey, row);
-          }
-
-          const sorted = [...byNumber.entries()]
-            .sort((a,b) => Number(b[0]) - Number(a[0]))
-            .map(([,line]) => line);
-
-          fs.writeFileSync(
-            FILE,
-            '\uFEFF' + [header, ...sorted, 'lucky-numbers.ru', ''].join('\n'),
-            'utf8'
-          );
-
-          console.log(`Lucky docs checked: ${data.docs.length}`);
-          console.log(`New draws added: ${added}`);
-          console.log(`Archive rows now: ${sorted.length}`);
-          console.log(`Latest archive row: ${sorted[0] ?? 'none'}`);
-          NODE
-
-          node /tmp/update-fortune.mjs
-
-      - name: Commit archive if changed
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if git diff --quiet -- data/fortune-archive.csv; then
-            echo "No new draw"
+          if git diff --quiet -- \
+            data/fortune-archive.csv \
+            data/current-forecast.json \
+            data/forecast-history.json \
+            data/forecast-ledger.json
+          then
+            echo "No new fact and next forecast is already fixed"
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/fortune-archive.csv
-          git commit -m "Auto-update Fortune archive"
-          git push
+          git add \
+            data/fortune-archive.csv \
+            data/current-forecast.json \
+            data/forecast-history.json \
+            data/forecast-ledger.json
+
+          git commit -m "Fortune cycle: fact check and next forecast"
+
+          # Защита от разового fetch-first, если main изменился во время запуска.
+          git pull --rebase origin main
+          git push origin main
