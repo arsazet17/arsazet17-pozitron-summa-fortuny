@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#240708">
+<title>Сумма Фортуны</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="app">
+<header class="top"><div><div class="title">Сумма Фортуны</div><div class="sub">Прогнозный центр</div></div><div class="bell">🔔</div></header>
+
+<main>
+<section class="page active" id="home">
+  <div class="card strip">
+    <div><div class="k">🕘 Последний тираж</div><div class="v" id="lastDraw"></div><div class="small" id="lastDrawNo"></div></div>
+    <div><div class="k">📅 Следующий тираж</div><div class="v" id="nextDraw"></div><div class="hot">прогноз зафиксирован</div></div>
+    <div><div class="k">↻ Архив</div><div class="v green" id="archiveStatus"></div><div class="small">встроен в приложение</div></div>
+  </div>
+
+  <div class="three">
+    <button class="card dir btn secondary" data-go="forecast"><div class="dice">🎲</div><h3>Сумма</h3><p>Прогноз суммы выпавших чисел</p></button>
+    <button class="card dir btn secondary" data-go="forecast"><div class="dice">🎲🎲</div><h3>Комбинация</h3><p>Категории комбинаций шести кубиков</p></button>
+    <button class="card dir btn secondary" data-go="forecast"><div class="dice">🎲</div><h3>Позиции</h3><p>Прогноз точных позиций</p></button>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">⚙️ Движок прогнозов</div>
+    <div class="small">Правила Юли встроены без изменения</div>
+    <div class="engine-grid" style="margin-top:14px">
+      <div class="tool"><b>В→В</b></div><div class="tool"><b>В→Г</b></div><div class="tool"><b>Г→В</b></div><div class="tool"><b>Г→Г</b></div><div class="tool"><b>В1</b></div>
+      <div class="tool"><b>В2</b></div><div class="tool"><b>В3</b></div><div class="tool"><b>Combo</b></div><div class="tool"><b>Повторы</b></div><div class="tool"><b>Статистика</b></div>
+    </div>
+  </div>
+
+  <div class="card"><div class="k">Текущий сильный объединённый сигнал</div><div class="signal" id="homeStrong"></div></div>
+  <div class="card notice"><div class="ico">⚠️</div><div><b>Суперприз по номеру билета</b><br>в приложении <b class="hot">не используется</b>.</div></div>
+</section>
+
+<section class="page" id="forecast">
+  <div class="title">Прогноз</div><div class="sub">Следующий тираж <span id="fTarget"></span></div>
+  <div class="card strip" style="grid-template-columns:1fr 1fr"><div><div class="k">🕘 Последний факт</div><div class="v" id="fLast"></div></div><div><div class="k">↻ Архив</div><div class="v green">синхронизирован</div></div></div>
+
+  <div class="card"><div class="sec-title">🎯 Основной прогноз</div><div class="forecast-main">
+    <div><div class="k">В1</div><div class="big" id="v1"></div></div>
+    <div><div class="k">В2</div><div class="big" id="v2"></div></div>
+    <div><div class="k">В3</div><div class="big" id="v3"></div></div>
+  </div></div>
+
+  <div class="midgrid">
+    <div class="card"><div class="sec-title">🎲 Комбинации→Σ</div><div class="combo-row" id="comboCells"></div><div class="signal">= <span id="comboSum"></span></div></div>
+    <div class="card"><div class="sec-title">📊 Доп. статистика</div><div class="big" id="statSignal"></div><div class="amber" id="statLabel"></div><div class="small" id="statReason"></div></div>
+  </div>
+
+  <div class="card"><div class="sec-title">🔥 Сильный сигнал</div><div class="v" id="strongText"></div></div>
+
+  <div class="game-grid">
+    <div class="card"><h3>🎲 Сумма</h3><div class="chips" id="sumChips"></div></div>
+    <div class="card"><h3>🎲🎲 Комбинация</h3><div id="comboPrediction"></div></div>
+    <div class="card"><h3>🎲 Позиции</h3><div class="positions" id="positionPrediction"></div></div>
+  </div>
+
+  <button class="btn" id="demoFact">Проверить новый факт вручную</button>
+  <button class="btn secondary" data-go="engine">Полный расчёт движка</button>
+</section>
+
+<section class="page" id="result">
+  <div class="title">Результат тиража</div><div class="sub">Проверка без изменений задним числом</div>
+  <div id="resultContent"></div>
+</section>
+
+<section class="page" id="rules">
+  <div class="title">Правила и выплаты</div><div class="sub">Три игровых направления</div>
+  <div class="card notice"><div class="ico">⚠️</div><div>Суперприз по номеру билета <b class="hot">не используется</b>.</div></div>
+  <div class="card"><h2>1. Сумма</h2><table class="table"><tbody id="sumRules"></tbody></table></div>
+  <div class="card"><h2>2. Комбинация</h2><table class="table"><tbody id="comboRules"></tbody></table></div>
+  <div class="card"><h2>3. Позиции</h2><table class="table"><tbody id="positionRules"></tbody></table></div>
+</section>
+
+<section class="page" id="engine">
+  <div class="title">Движок</div><div class="sub">Строгий расчёт по законам Юли</div>
+  <div id="chains"></div>
+  <div class="card"><div class="sec-title">4 метода</div><div id="methods"></div></div>
+  <div class="card"><div class="sec-title">Охват / частота</div><div style="overflow:auto"><table class="table"><thead><tr><td>Σ</td><td>Охват</td><td>Частота</td><td>Самое старое</td></tr></thead><tbody id="variantTable"></tbody></table></div></div>
+  <div class="card"><div class="sec-title">🔁 Повторы — только подтверждение</div><div class="chips" id="repeatGrid"></div></div>
+  <div class="card"><div class="sec-title">🎲 Combo — 6 позиций</div><div id="comboPositionsDetail"></div></div>
+  <div class="card notice"><div class="ico">✅</div><div>6→5→4→3→2, сокращение только слева, стоп на первом найденном уровне. Старые прогнозы не меняются.</div></div>
+  <button class="btn secondary" data-go="archive">Открыть архив</button>
+</section>
+
+<section class="page" id="archive">
+  <div class="title">Архив</div><div class="sub">Фактические тиражи</div>
+  <div class="card"><div id="archiveInfo"></div></div>
+  <div class="card" style="overflow:auto"><table class="table"><thead><tr><td>№</td><td>Дата</td><td>Комбинация</td><td>Σ</td></tr></thead><tbody id="archiveRows"></tbody></table></div>
+  <div class="small footer-note">На экране последние 30 строк; движок использует весь архив.</div>
+</section>
+</main>
+
+<div class="footer-note">Правило = Закон · прогноз фиксируется ДО факта · никаких скрытых тай-брейков</div>
+</div>
+
+<nav class="nav">
+<button class="active" data-page="home"><span class="nicon">⌂</span>Главная</button>
+<button data-page="forecast"><span class="nicon">↗</span>Прогноз</button>
+<button data-page="result"><span class="nicon">🏆</span>Результат</button>
+<button data-page="rules"><span class="nicon">▣</span>Правила</button>
+</nav>
+
+<script type="module" src="./app.js"></script>
+</body></html>
