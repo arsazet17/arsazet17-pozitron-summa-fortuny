@@ -19,40 +19,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download latest Lucky Numbers pages
+      - name: Download latest Lucky Numbers draws
         shell: bash
         run: |
           set -euo pipefail
 
-          mkdir -p /tmp/fortune-pages
+          URL='https://lucky-numbers.ru/api/v1/lottery/ru/fortune/results?page=1&limit=20'
 
-          for PAGE in 1 2 3 4 5; do
-            URL="https://lucky-numbers.ru/api/v1/lottery/ru/fortune/results?page=${PAGE}&limit=20"
+          CODE="$(
+            curl -sS \
+              --retry 2 \
+              --retry-delay 2 \
+              --connect-timeout 15 \
+              --max-time 30 \
+              -A 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36' \
+              -H 'Accept: application/json, text/plain, */*' \
+              -H 'Accept-Language: ru-RU,ru;q=0.9,en;q=0.8' \
+              -H 'Referer: https://lucky-numbers.ru/lottery/ru/fortune' \
+              -o /tmp/fortune-page1.json \
+              -w '%{http_code}' \
+              "$URL"
+          )"
 
-            CODE="$(
-              curl -sS \
-                --retry 2 \
-                --retry-delay 2 \
-                --connect-timeout 15 \
-                --max-time 30 \
-                -A 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36' \
-                -H 'Accept: application/json, text/plain, */*' \
-                -H 'Accept-Language: ru-RU,ru;q=0.9,en;q=0.8' \
-                -H 'Referer: https://lucky-numbers.ru/lottery/ru/fortune' \
-                -o "/tmp/fortune-pages/${PAGE}.json" \
-                -w '%{http_code}' \
-                "$URL"
-            )"
+          echo "Lucky page 1: HTTP ${CODE}"
 
-            echo "Lucky page ${PAGE}: HTTP ${CODE}"
-
-            if [ "$CODE" != "200" ]; then
-              echo "Lucky API failed on page ${PAGE}"
-              head -c 1200 "/tmp/fortune-pages/${PAGE}.json" || true
-              echo
-              exit 1
-            fi
-          done
+          if [ "$CODE" != "200" ]; then
+            echo "Lucky API failed"
+            head -c 1200 /tmp/fortune-page1.json || true
+            echo
+            exit 1
+          fi
 
       - name: Merge new draws into archive
         shell: bash
@@ -111,23 +107,17 @@ jobs:
             }
           }
 
-          const docs = [];
+          const data = JSON.parse(
+            fs.readFileSync('/tmp/fortune-page1.json', 'utf8')
+          );
 
-          for (let page = 1; page <= 5; page++) {
-            const data = JSON.parse(
-              fs.readFileSync(`/tmp/fortune-pages/${page}.json`, 'utf8')
-            );
-
-            if (!Array.isArray(data.docs)) {
-              throw new Error(`Lucky page ${page}: docs[] missing`);
-            }
-
-            docs.push(...data.docs);
+          if (!Array.isArray(data.docs)) {
+            throw new Error('Lucky page 1: docs[] missing');
           }
 
           let added = 0;
 
-          for (const doc of docs) {
+          for (const doc of data.docs) {
             const numberKey = String(Number(doc.number));
 
             if (!numberKey || numberKey === 'NaN') continue;
@@ -161,7 +151,7 @@ jobs:
             'utf8'
           );
 
-          console.log(`Lucky docs checked: ${docs.length}`);
+          console.log(`Lucky docs checked: ${data.docs.length}`);
           console.log(`New draws added: ${added}`);
           console.log(`Archive rows now: ${sorted.length}`);
           console.log(`Latest archive row: ${sorted[0] ?? 'none'}`);
