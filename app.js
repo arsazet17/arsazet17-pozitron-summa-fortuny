@@ -11,35 +11,35 @@ const fmtAt=at=>{const [d,t]=at.split('T');const [y,m,dd]=d.split('-');return `$
 const picks=a=>a?.length?a.join(' / '):'—';
 
 async function boot(){
-  const [csv,rr,ll]=await Promise.all([
-    fetch('./data/fortune-archive.csv').then(r=>r.text()),
-    fetch('./data/rules.json').then(r=>r.json()),
-    fetch('./data/forecast-ledger.json').then(r=>r.json())
+  const bust='?v='+Date.now();
+
+  const [csv,rr,ll,fixed]=await Promise.all([
+    fetch('./data/fortune-archive.csv'+bust,{cache:'no-store'}).then(r=>r.text()),
+    fetch('./data/rules.json'+bust,{cache:'no-store'}).then(r=>r.json()),
+    fetch('./data/forecast-ledger.json'+bust,{cache:'no-store'}).then(r=>r.json()),
+    fetch('./data/current-forecast.json'+bust,{cache:'no-store'}).then(async r=>r.ok?r.json():null).catch(()=>null)
   ]);
 
-  facts=parseLuckyCsv(csv); rules=rr; ledger=ll;
+  facts=parseLuckyCsv(csv);
+  rules=rr;
+  ledger=ll;
 
-  // Весь хвост после 13:07 импортирован как факты без заранее зафиксированных прогнозов.
-  const known=new Set(ledger.recent.map(x=>x.at));
-  for(const f of facts.filter(x=>x.at>'2026-08-22T13:07')){
-    if(!known.has(f.at)) ledger.recent.push({at:f.at,status:'U',actualSum:f.sum});
-  }
-  ledger.recent.sort((a,b)=>a.at.localeCompare(b.at));
+  const expectedTarget=nextScheduledAfter(facts.at(-1).at);
 
-  const target=nextScheduledAfter(facts.at(-1).at);
-  const calculated=calculateForecast(facts,target,ledger);
-
-  const saved=JSON.parse(localStorage.getItem(stateKey)||'null');
-  if(saved?.fixedForecast?.targetAt===target){
-    forecast=saved.fixedForecast;
-  }else{
-    forecast=calculated;
-    localStorage.setItem(stateKey,JSON.stringify({fixedForecast:forecast,fixedAt:new Date().toISOString()}));
+  if(!fixed || fixed.targetAt!==expectedTarget || !fixed.locked){
+    document.body.innerHTML=
+      `<div style="padding:28px;color:white;background:#220709;min-height:100vh">
+        <h1>Прогноз ещё не зафиксирован</h1>
+        <p>Последний факт: ${fmtAt(facts.at(-1).at)}.</p>
+        <p>Ожидается автоматическая фиксация прогноза на ${fmtAt(expectedTarget)}.</p>
+        <p>Браузер не рассчитывает прогноз сам — это запрещено законом фиксации ДО тиража.</p>
+      </div>`;
+    return;
   }
 
+  forecast=fixed;
   render();
 }
-
 function render(){
   const last=facts.at(-1);
 
