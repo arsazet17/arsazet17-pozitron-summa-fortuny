@@ -1,0 +1,137 @@
+name: Fortune Auto Update
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fortune-auto-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Fortune archive
+        run: |
+          cat > /tmp/update-fortune.mjs <<'NODE'
+          import fs from 'node:fs';
+
+          const API = 'https://lucky-numbers.ru/api/v1/lottery/ru/fortune/results';
+          const FILE = 'data/fortune-archive.csv';
+          const PAGE_LIMIT = 20;
+          const PAGES = 5;
+
+          function moscowParts(iso) {
+            const d = new Date(iso);
+            const parts = new Intl.DateTimeFormat('en-GB', {
+              timeZone: 'Europe/Moscow',
+              year: '2-digit', month: '2-digit', day: '2-digit',
+              hour: '2-digit', minute: '2-digit', hour12: false
+            }).formatToParts(d);
+            const get = t => parts.find(p => p.type === t)?.value;
+            return {
+              date: `${get('day')}.${get('month')}.${get('year')}`,
+              time: `${get('hour')}:${get('minute')}`
+            };
+          }
+
+          function ballsOf(doc) {
+            const byPos = new Map(
+              (doc.played || []).map(x => [
+                Number(x.lototronId),
+                Number(x.balls?.[0])
+              ])
+            );
+            return [0,1,2,3,4,5].map(i => byPos.get(i));
+          }
+
+          async function fetchPage(page) {
+            const url = `${API}?page=${page}&limit=${PAGE_LIMIT}`;
+            const r = await fetch(url, {
+              headers: {
+                accept: 'application/json',
+                'user-agent': 'Mozilla/5.0 FortuneAutoUpdate/1.0'
+              }
+            });
+            if (!r.ok) throw new Error(`API HTTP ${r.status} on page ${page}`);
+            return r.json();
+          }
+
+          const existing = fs.readFileSync(FILE, 'utf8').replace(/^\uFEFF/, '');
+          const lines = existing.split(/\r?\n/).filter(Boolean);
+          const header = lines.shift() || 'Номер тиража,Дата,Шары';
+
+          const byNumber = new Map();
+
+          for (const line of lines) {
+            if (line === 'lucky-numbers.ru') continue;
+            const n = line.split(',')[0]?.trim();
+            if (/^\d+$/.test(n)) byNumber.set(String(Number(n)), line);
+          }
+
+          let apiDocs = [];
+
+          for (let page = 1; page <= PAGES; page++) {
+            const data = await fetchPage(page);
+            apiDocs.push(...(data.docs || []));
+          }
+
+          let added = 0;
+
+          for (const doc of apiDocs) {
+            const num = String(Number(doc.number));
+            if (!num || num === 'NaN') continue;
+
+            const balls = ballsOf(doc);
+            if (balls.some(x => !Number.isInteger(x) || x < 1 || x > 6)) continue;
+
+            const {date, time} = moscowParts(doc.date);
+            const draw = String(doc.number).padStart(6, '0');
+
+            const row =
+              `${draw},${date}, ${time},` +
+              `${balls[0]},+,${balls[1]},+,${balls[2]},+,` +
+              `${balls[3]},+,${balls[4]},+,${balls[5]}`;
+
+            if (!byNumber.has(num)) added++;
+            byNumber.set(num, row);
+          }
+
+          const sorted = [...byNumber.entries()]
+            .sort((a,b) => Number(b[0]) - Number(a[0]))
+            .map(([,line]) => line);
+
+          const output =
+            '\uFEFF' + [header, ...sorted, 'lucky-numbers.ru', ''].join('\n');
+
+          fs.writeFileSync(FILE, output, 'utf8');
+
+          console.log(`API rows checked: ${apiDocs.length}`);
+          console.log(`New draws added: ${added}`);
+          console.log(`Archive rows now: ${sorted.length}`);
+          console.log(`Latest row: ${sorted[0] || 'none'}`);
+          NODE
+
+          node /tmp/update-fortune.mjs
+
+      - name: Commit archive if changed
+        run: |
+          if git diff --quiet -- data/fortune-archive.csv; then
+            echo "No new draw"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/fortune-archive.csv
+          git commit -m "Auto-update Fortune archive"
+          git push
