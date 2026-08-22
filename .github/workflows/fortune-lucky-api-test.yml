@@ -1,0 +1,84 @@
+name: Fortune Lucky API Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  lucky-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Test Lucky Numbers Fortune API
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          URL='https://lucky-numbers.ru/api/v1/lottery/ru/fortune/results?page=1&limit=20'
+
+          echo "TEST_URL=$URL"
+
+          HTTP_CODE="$(
+            curl -sS \
+              --retry 2 \
+              --retry-delay 2 \
+              --connect-timeout 15 \
+              --max-time 30 \
+              -A 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36' \
+              -H 'Accept: application/json, text/plain, */*' \
+              -H 'Accept-Language: ru-RU,ru;q=0.9,en;q=0.8' \
+              -H 'Referer: https://lucky-numbers.ru/lottery/ru/fortune' \
+              -o /tmp/fortune.json \
+              -w '%{http_code}' \
+              "$URL"
+          )"
+
+          echo "HTTP_CODE=$HTTP_CODE"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Lucky API test FAILED"
+            echo "Response preview:"
+            head -c 1200 /tmp/fortune.json || true
+            echo
+            exit 1
+          fi
+
+          node <<'NODE'
+          const fs = require('fs');
+
+          const raw = fs.readFileSync('/tmp/fortune.json', 'utf8');
+          const data = JSON.parse(raw);
+
+          if (!Array.isArray(data.docs)) {
+            throw new Error('Ответ 200, но поля docs[] нет');
+          }
+
+          if (!data.docs.length) {
+            throw new Error('Ответ 200, но docs[] пуст');
+          }
+
+          const d = data.docs[0];
+
+          const balls = new Map(
+            (d.played || []).map(x => [
+              Number(x.lototronId),
+              Number(x.balls?.[0])
+            ])
+          );
+
+          const combo = [0,1,2,3,4,5].map(i => balls.get(i));
+
+          if (combo.some(x => !Number.isInteger(x) || x < 1 || x > 6)) {
+            throw new Error('Не удалось прочитать все 6 позиций');
+          }
+
+          const sum = combo.reduce((a,b) => a+b, 0);
+
+          console.log('LUCKY_API_OK');
+          console.log('Latest draw:', d.number);
+          console.log('Date UTC:', d.date);
+          console.log('Combo:', combo.join('-'));
+          console.log('Sum:', sum);
+          console.log('Docs on page:', data.docs.length);
+          console.log('Total docs:', data.totalDocs ?? 'unknown');
+          NODE
