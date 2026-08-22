@@ -1,5 +1,5 @@
 
-import {parseLuckyCsv,evaluateForecast,sumPayout} from './engine.js';
+import {parseLuckyCsv,evaluateForecast,combinationCategories} from './engine.js';
 
 const $=s=>document.querySelector(s);
 
@@ -33,11 +33,6 @@ async function loadData(){
   };
 }
 
-function combinationPayout(ev){
-  const pays=(ev?.combinationCategories||[]).map(x=>Number(x.payout)||0);
-  return pays.length?Math.max(...pays):0;
-}
-
 function badge(hit){
   return hit
     ? '<span class="rh-badge rh-hit">✅ ПОПАЛИ</span>'
@@ -49,6 +44,21 @@ function statusBadge(checked,mainHit){
   return mainHit
     ? '<span class="rh-status rh-hit">✅ Основной попал</span>'
     : '<span class="rh-status rh-miss">❌ Основной мимо</span>';
+}
+
+function sumDirectionPayout(f,ev){
+  const hit=Boolean(ev?.v1Hit||ev?.v2Hit||ev?.v3Hit||ev?.comboHit);
+  return hit ? Number(ev?.sumPayout||0) : 0;
+}
+
+function combinationDirectionPayout(f,actual,rules){
+  if(!f?.combo?.complete || !Array.isArray(f.combo.combo)) return 0;
+  const predicted=combinationCategories(f.combo.combo,rules);
+  const actualCats=combinationCategories(actual.combo,rules);
+  const actualKeys=new Set(actualCats.map(c=>c.key));
+  return predicted
+    .filter(c=>actualKeys.has(c.key))
+    .reduce((sum,c)=>sum+(Number(c.payout)||0),0);
 }
 
 function makeItem(entry,rules,idx){
@@ -70,8 +80,8 @@ function makeItem(entry,rules,idx){
 
   let factBlock='';
   if(checked && ev){
-    const comboPay=combinationPayout(ev);
-    const sumPay=Number(ev.sumPayout)||0;
+    const sumPay=sumDirectionPayout(f,ev);
+    const comboPay=combinationDirectionPayout(f,entry.actual,rules);
     const posPay=Number(ev.positionPayout)||0;
     const total=sumPay+comboPay+posPay;
 
@@ -192,8 +202,6 @@ async function renderResults(force=false){
     <div class="rh-list">${list}</div>`;
 }
 
-// The main app paints its old "Ожидается факт" card during boot.
-// Repaint after boot, and every time Result is opened.
 window.addEventListener('load',()=>setTimeout(()=>renderResults(true),900));
 
 document.addEventListener('click',e=>{
@@ -201,8 +209,6 @@ document.addEventListener('click',e=>{
   if(btn) setTimeout(()=>renderResults(true),80);
 });
 
-// Periodically refresh only while Result page is open, so a newly arrived draw
-// appears without reinstalling/reloading the application.
 setInterval(()=>{
   const page=$('#result');
   if(page?.classList.contains('active')) renderResults(false);
