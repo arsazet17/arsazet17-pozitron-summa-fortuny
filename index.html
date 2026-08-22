@@ -8,10 +8,20 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="stylesheet" href="./styles.css">
 <link rel="stylesheet" href="./results-history.css">
+<link rel="stylesheet" href="./update-app.css">
 </head>
 <body>
 <div class="app">
-<header class="top"><div><div class="title">Сумма Фортуны</div><div class="sub">Прогнозный центр</div></div><div class="bell">🔔</div></header>
+<header class="top">
+  <div>
+    <div class="title-row">
+      <div class="title">Сумма Фортуны</div>
+      <span class="app-version" id="appVersion">v1.1.0</span>
+    </div>
+    <div class="sub">Прогнозный центр</div>
+  </div>
+  <button class="bell update-bell" id="updateAppBtn" type="button" aria-label="Обновить приложение" title="Обновить приложение">🔔</button>
+</header>
 
 <main>
 <section class="page active" id="home">
@@ -111,4 +121,5 @@
 
 <script type="module" src="./app.js"></script>
 <script type="module" src="./results-history.js"></script>
+<script type="module" src="./update-app.js"></script>
 </body></html>
