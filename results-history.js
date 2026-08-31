@@ -91,7 +91,7 @@ function makeItem(entry,rules,facts,idx){
   }
 
   const status=checked
-    ? `<span class="rh-status ${mainHit?'rh-hit':'rh-done'}">${mainHit?'✅ Попали':'✅ Тираж завершён'}</span>`
+    ? `<span class="rh-status ${mainHit?'rh-hit':'rh-miss'}">${mainHit?'✅ Попали':'❌ Основной мимо'}</span>`
     : '<span class="rh-status rh-wait">⏳ Ожидается</span>';
 
   return `
