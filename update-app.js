@@ -1,5 +1,4 @@
-
-const APP_VERSION='1.1.0';
+const APP_VERSION='1.2.1';
 
 const btn=document.getElementById('updateAppBtn');
 const versionEl=document.getElementById('appVersion');
@@ -23,20 +22,29 @@ async function forceUpdate(){
   if(!btn || btn.dataset.busy==='1') return;
   btn.dataset.busy='1';
   btn.classList.add('updating');
-  toast('🔄 Обновляю приложение…');
+  toast('🔄 Проверяю обновление…');
 
   try{
+    // Сначала заставляем браузер проверить service worker по сети.
     if('serviceWorker' in navigator){
       const regs=await navigator.serviceWorker.getRegistrations();
       await Promise.all(regs.map(r=>r.update().catch(()=>{})));
     }
 
+    // Полностью удаляем старые кэши приложения.
     if('caches' in window){
       const keys=await caches.keys();
-      await Promise.all(keys.filter(k=>k.startsWith('summa-fortuny-')).map(k=>caches.delete(k)));
+      await Promise.all(
+        keys
+          .filter(k=>k.startsWith('summa-fortuny-'))
+          .map(k=>caches.delete(k))
+      );
     }
 
-    await fetch('./index.html?update='+Date.now(),{cache:'no-store'});
+    // Контрольный сетевой запрос новой оболочки.
+    const r=await fetch('./index.html?update='+Date.now(),{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+
     toast('✅ Обновление загружено. Перезапускаю…','ok');
 
     setTimeout(()=>{

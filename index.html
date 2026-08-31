@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#240708">
 <title>Сумма Фортуны</title>
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="stylesheet" href="./styles.css">
-<link rel="stylesheet" href="./results-history.css">
-<link rel="stylesheet" href="./update-app.css">
+<link rel="manifest" href="./manifest.webmanifest?v=1.2.1">
+<link rel="stylesheet" href="./styles.css?v=1.2.1">
+<link rel="stylesheet" href="./results-history.css?v=1.2.1">
+<link rel="stylesheet" href="./update-app.css?v=1.2.1">
 </head>
 <body>
 <div class="app">
@@ -16,7 +16,7 @@
   <div>
     <div class="title-row">
       <div class="title">Сумма Фортуны</div>
-      <span class="app-version" id="appVersion">v1.1.0</span>
+      <span class="app-version" id="appVersion">v1.2.1</span>
     </div>
     <div class="sub">Прогнозный центр</div>
   </div>
@@ -39,10 +39,10 @@
 
   <div class="card">
     <div class="sec-title">⚙️ Движок прогнозов</div>
-    <div class="small">Правила Юли встроены без изменения</div>
+    <div class="small">HARD RANGE · FULL 6–36 · JUMP-TRACK · строгая фиксация ДО факта</div>
     <div class="engine-grid" style="margin-top:14px">
-      <div class="tool"><b>В→В</b></div><div class="tool"><b>В→Г</b></div><div class="tool"><b>Г→В</b></div><div class="tool"><b>Г→Г</b></div><div class="tool"><b>В1</b></div>
-      <div class="tool"><b>В2</b></div><div class="tool"><b>В3</b></div><div class="tool"><b>Combo</b></div><div class="tool"><b>Повторы</b></div><div class="tool"><b>Статистика</b></div>
+      <div class="tool"><b>GLOBAL</b></div><div class="tool"><b>TIME</b></div><div class="tool"><b>TRANS</b></div><div class="tool"><b>DELTA</b></div><div class="tool"><b>JUMP</b></div>
+      <div class="tool"><b>PAIR</b></div><div class="tool"><b>D2</b></div><div class="tool"><b>STATE</b></div><div class="tool"><b>RAW 4M</b></div><div class="tool"><b>Combo</b></div>
     </div>
   </div>
 
@@ -91,13 +91,14 @@
 </section>
 
 <section class="page" id="engine">
-  <div class="title">Движок</div><div class="sub">Строгий расчёт по законам Юли</div>
+  <div class="title">Движок</div><div class="sub">HARD RANGE · JUMP-TRACK · NO POST-FACT LEAKAGE</div>
+  <div id="hardRangeDetails"></div>
   <div id="chains"></div>
-  <div class="card"><div class="sec-title">4 метода</div><div id="methods"></div></div>
-  <div class="card"><div class="sec-title">Охват / частота</div><div style="overflow:auto"><table class="table"><thead><tr><td>Σ</td><td>Охват</td><td>Частота</td><td>Самое старое</td></tr></thead><tbody id="variantTable"></tbody></table></div></div>
+  <div class="card"><div class="sec-title">4 RAW-метода</div><div id="methods"></div></div>
+  <div class="card"><div class="sec-title">Strict RAW · охват / частота</div><div style="overflow:auto"><table class="table"><thead><tr><td>Σ</td><td>Охват</td><td>Частота</td><td>Самое старое</td></tr></thead><tbody id="variantTable"></tbody></table></div></div>
   <div class="card"><div class="sec-title">🔁 Повторы — только подтверждение</div><div class="chips" id="repeatGrid"></div></div>
   <div class="card"><div class="sec-title">🎲 Combo — 6 позиций</div><div id="comboPositionsDetail"></div></div>
-  <div class="card notice"><div class="ico">✅</div><div>6→5→4→3→2, сокращение только слева, стоп на первом найденном уровне. Старые прогнозы не меняются.</div></div>
+  <div class="card notice"><div class="ico">✅</div><div>GLOBAL/TIME/TRANS/DELTA/JUMP/PAIR/D2/STATE пересчитываются каждый цикл. RAW: 6→5→4→3→2. Frozen после фиксации не переписывается.</div></div>
   <button class="btn secondary" data-go="archive">Открыть архив</button>
 </section>
 
@@ -109,7 +110,7 @@
 </section>
 </main>
 
-<div class="footer-note">Правило = Закон · прогноз фиксируется ДО факта · никаких скрытых тай-брейков</div>
+<div class="footer-note">Правило = Закон · forecast → fact → audit → next forecast · frozen не меняется задним числом</div>
 </div>
 
 <nav class="nav">
@@ -119,7 +120,8 @@
 <button data-page="rules"><span class="nicon">▣</span>Правила</button>
 </nav>
 
-<script type="module" src="./app.js"></script>
-<script type="module" src="./results-history.js"></script>
-<script type="module" src="./update-app.js"></script>
+<script type="module" src="./app.js?v=1.2.1"></script>
+<script type="module" src="./hard-range-ui.js?v=1.2.1"></script>
+<script type="module" src="./results-history.js?v=1.2.1"></script>
+<script type="module" src="./update-app.js?v=1.2.1"></script>
 </body></html>

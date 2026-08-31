@@ -1,8 +1,5 @@
-
-/* Separate result-history UI */
-.rh-current{display:flex;align-items:center;justify-content:space-between;gap:18px}
-.rh-lock{font-size:2rem;opacity:.85}
-.rh-label{display:block;color:#c9a9aa;font-size:.78rem;font-weight:850;letter-spacing:.04em;margin-bottom:5px}
+/* Result history: compact public card only. Internal analytics stay hidden in engine data. */
+.rh-label,.rh-section-label{display:block;color:#c9a9aa;font-size:.78rem;font-weight:850;letter-spacing:.04em;margin-bottom:8px}
 .rh-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:24px 4px 10px}
 .rh-count{width:44px;height:44px;flex:0 0 44px;border-radius:50%;display:grid;place-items:center;background:#57191c;border:1px solid #8a2f34;color:#ff6d75;font-weight:900}
 .rh-list{display:grid;gap:12px}
@@ -10,39 +7,13 @@
 .rh-item summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:17px 18px}
 .rh-item summary::-webkit-details-marker{display:none}
 .rh-item[open] summary{background:#5b1a1e;border-bottom:1px solid #743034}
-.rh-summary-left{display:flex;align-items:center;gap:12px;min-width:0}
-.rh-summary-left b{font-size:1.02rem}
-.rh-summary-left span{color:#ff6d75;font-weight:900;white-space:nowrap}
-.rh-summary-right{display:flex;align-items:center;gap:8px}
-.rh-status{font-size:.74rem;font-weight:900;white-space:nowrap}
-.rh-hit{color:#65dd6b}
-.rh-miss{color:#c9a9aa}
-.rh-wait{color:#f3ad43}
-.rh-arrow{font-size:1.4rem;transition:transform .2s}
-.rh-item[open] .rh-arrow{transform:rotate(180deg)}
-.rh-body{padding:16px 18px 19px}
-.rh-predict{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.rh-predict>div,.rh-line{background:#351012;border:1px solid #6e292d;border-radius:12px;padding:11px}
-.rh-predict span,.rh-line span{display:block;color:#c9a9aa;font-size:.8rem}
-.rh-predict b,.rh-line b{display:block;margin-top:5px}
-.rh-line{margin-top:8px}
-.rh-fact-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #6f2a2e;margin-top:14px;padding-top:14px}
-.rh-fact-row>div:first-child{display:grid;gap:2px}
-.rh-audit{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
-.rh-audit>div{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#2f0e10;border-radius:10px;padding:9px 10px}
-.rh-badge{font-size:.7rem;font-weight:900;white-space:nowrap}
-.rh-money{margin-top:12px;border:1px solid #6f292d;border-radius:12px;overflow:hidden}
-.rh-money>div{display:flex;justify-content:space-between;gap:14px;padding:10px 12px;border-bottom:1px solid #5f2327}
-.rh-money>div:last-child{border-bottom:0}
-.rh-money b{color:#65dd6b}
-.rh-total{background:#471417;font-size:1.04rem}
-.rh-total b{font-size:1.16rem}
-.rh-muted,.rh-fixed{margin-top:10px;color:#c9a9aa;font-size:.82rem}
-@media(max-width:720px){
-  .rh-summary-left{display:grid;gap:3px}
-  .rh-summary-left b{font-size:.92rem}
-  .rh-status{font-size:.66rem}
-  .rh-predict>div{padding:9px 6px;text-align:center}
-  .rh-audit{grid-template-columns:1fr}
-  .rh-fact-row{align-items:flex-start;flex-direction:column}
-}
+.rh-summary-left{display:flex;align-items:center;gap:12px;min-width:0}.rh-summary-left b{font-size:1.02rem}.rh-summary-left span{color:#ff6d75;font-weight:900;white-space:nowrap}
+.rh-summary-right{display:flex;align-items:center;gap:8px}.rh-status{font-size:.74rem;font-weight:900;white-space:nowrap}.rh-hit{color:#65dd6b}.rh-done{color:#65dd6b}.rh-wait{color:#f3ad43}.rh-arrow{font-size:1.4rem;transition:transform .2s}.rh-item[open] .rh-arrow{transform:rotate(180deg)}
+.rh-body{padding:18px}.rh-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}.rh-card-head>b{font-size:1.22rem}
+.rh-predict{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.rh-predict>div{background:#351012;border:1px solid #6e292d;border-radius:15px;padding:14px 8px;text-align:center}.rh-predict span{display:block;color:#c9a9aa;font-size:.84rem}.rh-predict b{display:block;margin-top:8px;font-size:1.35rem}
+.rh-line{background:#351012;border:1px solid #6e292d;border-radius:15px;padding:14px;margin-top:10px}.rh-line span{display:block;color:#c9a9aa;font-size:.84rem}.rh-line b{display:block;margin-top:7px;font-size:1.05rem}
+.rh-state-wait{border-top:1px solid #6f2a2e;margin-top:18px;padding-top:18px;display:grid;gap:8px}.rh-state-wait>b{color:#f3ad43}.rh-fixed{color:#c9a9aa;font-size:.86rem}
+.rh-fact-block{border-top:1px solid #6f2a2e;margin-top:18px;padding-top:18px}.rh-balls{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.rh-ball{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(#fff,#ddd);color:#111;font-size:1.25rem;font-weight:900;box-shadow:inset 0 -4px 8px #9997}.rh-fact-sum{text-align:center;color:#65dd6b;font-size:1.15rem;margin-top:12px}.rh-fact-sum b{font-size:1.35rem}
+.rh-result-card{margin-top:15px;border:1px solid #6f292d;border-radius:16px;padding:16px;background:#2f0e10}.rh-win{background:linear-gradient(145deg,#3d210d,#29100d)}.rh-loss{background:linear-gradient(145deg,#351012,#250b0d)}.rh-result-title{color:#c9a9aa;font-size:.78rem;font-weight:900}.rh-result-label{font-size:1.35rem;font-weight:950;margin-top:7px}.rh-win .rh-result-label,.rh-win .rh-result-money b{color:#65dd6b}.rh-loss .rh-result-label{color:#ff6d75}.rh-result-money{border-top:1px solid #6f292d;margin-top:13px;padding-top:12px;display:grid;gap:4px}.rh-result-money span{color:#c9a9aa}.rh-result-money b{font-size:1.55rem}
+.rh-meta{margin-top:15px;border:1px solid #6f292d;border-radius:15px;overflow:hidden}.rh-meta>div{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid #5f2327}.rh-meta>div:last-child{border-bottom:0}.rh-meta span{color:#d8c4c5}.rh-meta b{text-align:right}
+@media(max-width:720px){.rh-summary-left{display:grid;gap:3px}.rh-summary-left b{font-size:.92rem}.rh-status{font-size:.66rem}.rh-predict>div{padding:11px 5px}.rh-balls{gap:5px}.rh-ball{width:40px;height:40px}.rh-card-head{align-items:flex-start}.rh-card-head>b{font-size:1.08rem}}
