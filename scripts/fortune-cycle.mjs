@@ -1,4 +1,3 @@
-
 import fs from 'node:fs';
 import path from 'node:path';
 import {
@@ -27,6 +26,8 @@ const readJson = (file, fallback) => {
 const writeJson = (file, value) => {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n', 'utf8');
 };
+
+const nowDate = () => process.env.NOW_ISO ? new Date(process.env.NOW_ISO) : new Date();
 
 function moscowParts(iso) {
   const d = new Date(iso);
@@ -282,7 +283,7 @@ for (const entry of history) {
   const mainHit = final.includes(ev.actualSum);
 
   entry.checked = true;
-  entry.checkedAt = new Date().toISOString();
+  entry.checkedAt = nowDate().toISOString();
   entry.actual = actual;
 
   const postFactAudit = auditActualAgainstForecast(entry.forecast, actual, facts);
@@ -319,7 +320,8 @@ for (const entry of history) {
   appendTracking(ledger,entry,postFactAudit,history);
 }
 
-// 2) Новые факты без заранее зафиксированного прогноза получают U; старый архив не переписываем задним числом.
+// 2) Новые факты без заранее зафиксированного прогноза получают U.
+// Старый архив не переписываем задним числом.
 const knownLedgerTimes = [...ledgerByAt.keys()].sort();
 const ledgerCutoff = knownLedgerTimes.length ? knownLedgerTimes.at(-1) : null;
 
@@ -328,66 +330,82 @@ for (const fact of facts) {
   if (ledgerCutoff && fact.at <= ledgerCutoff) continue;
   const fixed = history.find(x => x?.targetAt === fact.at && x?.fixedAt);
   if (fixed) continue;
-  ledgerByAt.set(fact.at,{at:fact.at,status:'U',actualSum:fact.sum,note:'прогноз заранее не фиксировался'});
+  ledgerByAt.set(fact.at,{
+    at:fact.at,
+    status:'U',
+    actualSum:fact.sum,
+    note:'Факт получен, но прогноз на этот тираж заранее не фиксировался'
+  });
 }
 
 ledger.recent = [...ledgerByAt.values()].sort((a,b) => a.at.localeCompare(b.at));
 
-// 3) Только после audit факта рассчитываем следующий прогноз.
+// 3) Если факт текущего frozen уже пришёл, current закрывается.
+// Сам frozen остаётся в history и проходит audit выше.
 const lastFact = facts.at(-1);
+if (current?.targetAt && current.targetAt <= lastFact.at) {
+  console.log(`CURRENT_CLOSED ${current.targetAt}: факт уже получен; stale current очищен`);
+  current = null;
+}
+
+// 4) Новый frozen создаём только на реально будущий следующий слот.
+// Если источник пришёл поздно, факт/audit/U всё равно сохраняются без аварийного throw.
 const targetAt = nextScheduledAfter(lastFact.at);
+const now = nowDate();
+const targetDate = targetToDate(targetAt);
 
 if (!current || current.targetAt !== targetAt) {
-  const now = new Date();
-  const targetDate = targetToDate(targetAt);
   if (!(now < targetDate)) {
-    throw new Error(`ЗАПРЕТ ФИКСАЦИИ ЗАДНИМ ЧИСЛОМ: сейчас ${now.toISOString()}, цель ${targetAt} Europe/Moscow`);
+    console.log(`LATE_FACT_SAVED: сейчас ${now.toISOString()}, ближайшая цель ${targetAt} уже прошла`);
+    console.log('NO_POSTFACT_FORECAST: прогноз задним числом НЕ создаётся; ждём следующий фактический тираж');
+  } else {
+    const forecast = calculateForecast(facts, targetAt, ledger);
+    forecast.stats = statsSignal(ledger);
+
+    const previousForecast = history
+      .filter(x=>x?.forecast)
+      .sort((a,b)=>a.targetAt.localeCompare(b.targetAt))
+      .at(-1)?.forecast;
+    const prevFinal=finalOf(previousForecast);
+    forecast.stagnationCheck={
+      triggered:sameTriple(prevFinal,forecast.final),
+      previousFinal:prevFinal,
+      reviewedFamilies:['TIME','TRANS','DELTA','JUMP','PAIR','D2','STATE'],
+      note:sameTriple(prevFinal,forecast.final)
+        ?'STAGNATION-CHECK: все family пересчитаны заново; копирование прошлого frozen запрещено.'
+        :'Новый final не повторяет предыдущий frozen.'
+    };
+
+    forecast.controlGate={
+      base:'GLOBAL',
+      rule:'Adaptive/state memory разрешены только при доказанном превосходстве nested walk-forward; post-fact leakage запрещён.'
+    };
+
+    forecast.audit = auditForecast(forecast);
+    forecast.fixedAt = now.toISOString();
+    forecast.locked = true;
+    if (!forecast.audit.ok) throw new Error(`Аудит прогноза не пройден: ${forecast.audit.message}`);
+
+    current = forecast;
+    history.push({targetAt,fixedAt:forecast.fixedAt,checked:false,forecast});
+
+    console.log(`FORECAST_FIXED ${targetAt}`);
+    console.log(`MODEL=${forecast.modelVersion}`);
+    console.log(`FINAL=${forecast.final.join('/') || '—'}`);
+    console.log(`BASE=${forecast.weightedBase.join('/') || '—'}`);
+    console.log(`SELECTOR=${forecast.selector}`);
+    console.log(`JUMP=${forecast.jumpTrack?.delta ?? '—'} ${forecast.jumpTrack?.jumpState ?? ''}`);
+    console.log(`STRICT_RAW V1=${forecast.strictRaw?.v1?.join('/') || '—'} V2=${forecast.strictRaw?.v2?.join('/') || '—'} V3=${forecast.strictRaw?.v3?.join('/') || '—'}`);
+    console.log(`COMBO=${forecast.combo?.complete ? `${forecast.combo.combo.join('-')}=${forecast.combo.sum}` : 'НЕТ ПОЛНОГО ПРОГНОЗА'}`);
+    console.log(`STATS=${forecast.stats.signal.join('/') || 'НЕТ СИГНАЛА'}`);
+    console.log(`AUDIT=${forecast.audit.message}`);
   }
-
-  const forecast = calculateForecast(facts, targetAt, ledger);
-  forecast.stats = statsSignal(ledger);
-
-  const previousForecast = history
-    .filter(x=>x?.forecast)
-    .sort((a,b)=>a.targetAt.localeCompare(b.targetAt))
-    .at(-1)?.forecast;
-  const prevFinal=finalOf(previousForecast);
-  forecast.stagnationCheck={
-    triggered:sameTriple(prevFinal,forecast.final),
-    previousFinal:prevFinal,
-    reviewedFamilies:['TIME','TRANS','DELTA','JUMP','PAIR','D2','STATE'],
-    note:sameTriple(prevFinal,forecast.final)
-      ?'STAGNATION-CHECK: все family пересчитаны заново; копирование прошлого frozen запрещено.'
-      :'Новый final не повторяет предыдущий frozen.'
-  };
-
-  forecast.controlGate={
-    base:'GLOBAL',
-    rule:'Adaptive/state memory разрешены только при доказанном превосходстве nested walk-forward; post-fact leakage запрещён.'
-  };
-
-  forecast.audit = auditForecast(forecast);
-  forecast.fixedAt = now.toISOString();
-  forecast.locked = true;
-  if (!forecast.audit.ok) throw new Error(`Аудит прогноза не пройден: ${forecast.audit.message}`);
-
-  current = forecast;
-  history.push({targetAt,fixedAt:forecast.fixedAt,checked:false,forecast});
-
-  console.log(`FORECAST_FIXED ${targetAt}`);
-  console.log(`MODEL=${forecast.modelVersion}`);
-  console.log(`FINAL=${forecast.final.join('/') || '—'}`);
-  console.log(`BASE=${forecast.weightedBase.join('/') || '—'}`);
-  console.log(`SELECTOR=${forecast.selector}`);
-  console.log(`JUMP=${forecast.jumpTrack?.delta ?? '—'} ${forecast.jumpTrack?.jumpState ?? ''}`);
-  console.log(`STRICT_RAW V1=${forecast.strictRaw?.v1?.join('/') || '—'} V2=${forecast.strictRaw?.v2?.join('/') || '—'} V3=${forecast.strictRaw?.v3?.join('/') || '—'}`);
-  console.log(`COMBO=${forecast.combo?.complete ? `${forecast.combo.combo.join('-')}=${forecast.combo.sum}` : 'НЕТ ПОЛНОГО ПРОГНОЗА'}`);
-  console.log(`STATS=${forecast.stats.signal.join('/') || 'НЕТ СИГНАЛА'}`);
-  console.log(`AUDIT=${forecast.audit.message}`);
 } else {
   console.log(`Forecast ${targetAt} already fixed at ${current.fixedAt}; not changed`);
 }
 
+// 5) Всегда сохраняем полученные факты/audit/U.
+// Поэтому поздний факт больше не теряется только из-за прошедшего следующего слота.
 writeJson(LEDGER, ledger);
 writeJson(HISTORY, history);
 writeJson(CURRENT, current);
