@@ -20273,6 +20273,35 @@
       "classification": "HIT",
       "coverage": 1,
       "rawfreq": 1
+    },
+    {
+      "at": "2026-09-02T16:37",
+      "status": "M",
+      "actualSum": 23,
+      "forecastFixedAt": "2026-09-02T13:25:50.737Z",
+      "final": [
+        21,
+        20,
+        24
+      ],
+      "v1": [
+        21
+      ],
+      "v2": [
+        20
+      ],
+      "v3": [
+        24
+      ],
+      "comboSum": 20,
+      "stats": [
+        13,
+        18,
+        25
+      ],
+      "classification": "SELECTOR-MISS / FAMILY",
+      "coverage": 0,
+      "rawfreq": 0
     }
   ],
   "knownHistoricalAnalogs": [
@@ -103652,6 +103681,263 @@
         25
       ],
       "workOnErrors": "Попадание подтверждено; не продлевать state-break автоматически."
+    },
+    {
+      "at": "2026-09-02T16:37",
+      "frozen": [
+        21,
+        20,
+        24
+      ],
+      "fact": 23,
+      "hit": false,
+      "position": 0,
+      "families": {
+        "GLOBAL": {
+          "name": "GLOBAL",
+          "candidates": [
+            21,
+            20,
+            22
+          ],
+          "sample": 10236
+        },
+        "TIME": {
+          "name": "TIME",
+          "candidates": [
+            22,
+            21,
+            20
+          ],
+          "sample": 32,
+          "targetTime": "16:37"
+        },
+        "TRANS": {
+          "name": "TRANS",
+          "candidates": [
+            23,
+            21,
+            20
+          ],
+          "sample": 615,
+          "from": 25
+        },
+        "DELTA": {
+          "name": "DELTA",
+          "candidates": [
+            21,
+            22,
+            20
+          ],
+          "sample": 660,
+          "delta": 2
+        },
+        "JUMP": {
+          "name": "JUMP",
+          "candidates": [
+            21,
+            22,
+            20
+          ],
+          "sample": 3062,
+          "jumpClass": "UP_1_5"
+        },
+        "PAIR": {
+          "name": "PAIR",
+          "candidates": [
+            21,
+            20,
+            18
+          ],
+          "sample": 63,
+          "pair": [
+            23,
+            25
+          ]
+        },
+        "D2": {
+          "name": "D2",
+          "candidates": [
+            24,
+            22,
+            27
+          ],
+          "sample": 33,
+          "d2": [
+            -4,
+            2
+          ]
+        },
+        "STATE": {
+          "name": "STATE",
+          "candidates": [],
+          "sample": 0,
+          "stateLevel": null,
+          "state": []
+        }
+      },
+      "fullRaw": {
+        "В→В": {
+          "level": 4,
+          "chain": [
+            22,
+            19,
+            29,
+            25
+          ],
+          "matches": [
+            {
+              "value": 20,
+              "at": "2026-01-07T13:00",
+              "matchStart": "2026-01-03T13:00",
+              "source": "V:13:00"
+            }
+          ]
+        },
+        "В→Г": {
+          "level": 3,
+          "chain": [
+            19,
+            29,
+            25
+          ],
+          "matches": [
+            {
+              "value": 15,
+              "at": "2026-08-06T08:07",
+              "matchStart": "2026-08-06T07:22",
+              "source": "H:2026-08-06"
+            }
+          ]
+        },
+        "Г→В": {
+          "level": 4,
+          "chain": [
+            18,
+            27,
+            23,
+            25
+          ],
+          "matches": [
+            {
+              "value": 19,
+              "at": "2026-08-07T07:52",
+              "matchStart": "2026-08-03T07:52",
+              "source": "V:07:52"
+            }
+          ]
+        },
+        "Г→Г": {
+          "level": 3,
+          "chain": [
+            27,
+            23,
+            25
+          ],
+          "matches": [
+            {
+              "value": 26,
+              "at": "2026-02-12T16:00",
+              "matchStart": "2026-02-12T13:00",
+              "source": "H:2026-02-12"
+            }
+          ]
+        }
+      },
+      "strictRaw": {
+        "v1": [
+          15,
+          19,
+          20,
+          26
+        ],
+        "v2": [
+          15,
+          19,
+          20,
+          26
+        ],
+        "v3": [
+          20
+        ],
+        "rows": [
+          {
+            "value": 15,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-08-06T08:07",
+            "methods": [
+              "В→Г"
+            ]
+          },
+          {
+            "value": 19,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-08-07T07:52",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 20,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-01-07T13:00",
+            "methods": [
+              "В→В"
+            ]
+          },
+          {
+            "value": 26,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-02-12T16:00",
+            "methods": [
+              "Г→Г"
+            ]
+          }
+        ]
+      },
+      "coverage": 0,
+      "rawfreq": 0,
+      "classification": "SELECTOR-MISS / FAMILY",
+      "currentDelta": -2,
+      "jumpState": "DOWN_1_5",
+      "relation": "REVERSAL",
+      "d2": [
+        2,
+        -2
+      ],
+      "GLOBAL30": {
+        "hits": 6,
+        "total": 30
+      },
+      "center19_23_30": 11,
+      "globalMissStreak": 5,
+      "weightedBase": [
+        21,
+        20,
+        22
+      ],
+      "rangeReplacement": [
+        {
+          "type": "HARD_RANGE_CENTER_EXIT",
+          "from": 22,
+          "to": 24,
+          "blocks": [
+            "D2#1",
+            "exact Δ+2",
+            "|Δ|2"
+          ]
+        }
+      ],
+      "final": [
+        21,
+        20,
+        24
+      ],
+      "workOnErrors": "Факт был в FAMILY, но отсутствовал в полном RAW/final: проверить ранжирование family и weighted gate только вперёд."
     }
   ]
 }
