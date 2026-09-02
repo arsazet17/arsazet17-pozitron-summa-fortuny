@@ -712852,7 +712852,7 @@
   {
     "targetAt": "2026-09-02T14:22",
     "fixedAt": "2026-09-02T11:15:51.354Z",
-    "checked": false,
+    "checked": true,
     "forecast": {
       "modelVersion": "HARD-RANGE-JUMP-TRACK-2026-08-31",
       "targetAt": "2026-09-02T14:22",
@@ -713658,6 +713658,68 @@
         "message": "Отклонений от действующих законов не найдено"
       },
       "fixedAt": "2026-09-02T11:15:51.354Z"
+    },
+    "checkedAt": "2026-09-02T11:40:50.353Z",
+    "actual": {
+      "number": "010228",
+      "at": "2026-09-02T14:22",
+      "combo": [
+        5,
+        4,
+        3,
+        6,
+        3,
+        4
+      ],
+      "sum": 25
+    },
+    "postFactAudit": {
+      "frozen": [
+        22,
+        20,
+        24
+      ],
+      "fact": 25,
+      "hit": false,
+      "position": 0,
+      "familyHits": [],
+      "rawRoutes": [
+        "В→Г",
+        "Г→В"
+      ],
+      "coverage": 2,
+      "rawfreq": 2,
+      "classification": "SELECTOR-MISS / DEEP-RAW",
+      "currentDelta": 11,
+      "jumpState": "UP_GE10",
+      "relation": "REVERSAL",
+      "d2": [
+        0,
+        11
+      ],
+      "center19_23_30": 9,
+      "workOnErrors": "Факт был в полном RAW: ошибка selector, не structural. Усилить контроль сжатия и family-support только вперёд."
+    },
+    "result": {
+      "mainStatus": "M",
+      "actualSum": 25,
+      "finalHit": false,
+      "position": 0,
+      "v1Hit": false,
+      "v2Hit": false,
+      "v3Hit": false,
+      "rawHits": [
+        "В→Г",
+        "Г→В"
+      ],
+      "familyHits": [],
+      "coverage": 2,
+      "rawfreq": 2,
+      "classification": "SELECTOR-MISS / DEEP-RAW",
+      "comboHit": true,
+      "statsHit": false,
+      "positionMatches": 1,
+      "workOnErrors": "Факт был в полном RAW: ошибка selector, не structural. Усилить контроль сжатия и family-support только вперёд."
     }
   }
 ]
