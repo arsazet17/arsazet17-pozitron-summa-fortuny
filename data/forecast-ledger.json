@@ -29097,6 +29097,31 @@
       "classification": "HIT",
       "coverage": 1,
       "rawfreq": 3
+    },
+    {
+      "at": "2026-09-06T08:37",
+      "status": "H",
+      "actualSum": 20,
+      "forecastFixedAt": "2026-09-06T05:26:03.795Z",
+      "final": [
+        22,
+        20,
+        18
+      ],
+      "v1": [
+        22
+      ],
+      "v2": [
+        20
+      ],
+      "v3": [
+        18
+      ],
+      "comboSum": 23,
+      "stats": [],
+      "classification": "HIT",
+      "coverage": 2,
+      "rawfreq": 2
     }
   ],
   "knownHistoricalAnalogs": [
@@ -272190,6 +272215,263 @@
       "final": [
         21,
         19,
+        18
+      ],
+      "workOnErrors": "Попадание подтверждено; не продлевать state-break автоматически."
+    },
+    {
+      "at": "2026-09-06T08:37",
+      "frozen": [
+        22,
+        20,
+        18
+      ],
+      "fact": 20,
+      "hit": true,
+      "position": 2,
+      "families": {
+        "GLOBAL": {
+          "name": "GLOBAL",
+          "candidates": [
+            21,
+            20,
+            22
+          ],
+          "sample": 10588
+        },
+        "TIME": {
+          "name": "TIME",
+          "candidates": [
+            18,
+            22,
+            20
+          ],
+          "sample": 36,
+          "targetTime": "08:37"
+        },
+        "TRANS": {
+          "name": "TRANS",
+          "candidates": [
+            22,
+            21,
+            20
+          ],
+          "sample": 789,
+          "from": 18
+        },
+        "DELTA": {
+          "name": "DELTA",
+          "candidates": [
+            23,
+            20,
+            22
+          ],
+          "sample": 659,
+          "delta": -2
+        },
+        "JUMP": {
+          "name": "JUMP",
+          "candidates": [
+            21,
+            20,
+            23
+          ],
+          "sample": 3116,
+          "jumpClass": "DOWN_1_5"
+        },
+        "PAIR": {
+          "name": "PAIR",
+          "candidates": [
+            23,
+            22,
+            20
+          ],
+          "sample": 74,
+          "pair": [
+            20,
+            18
+          ]
+        },
+        "D2": {
+          "name": "D2",
+          "candidates": [
+            24,
+            19,
+            26
+          ],
+          "sample": 9,
+          "d2": [
+            -8,
+            -2
+          ]
+        },
+        "STATE": {
+          "name": "STATE",
+          "candidates": [],
+          "sample": 0,
+          "stateLevel": null,
+          "state": []
+        }
+      },
+      "fullRaw": {
+        "В→В": {
+          "level": 4,
+          "chain": [
+            18,
+            18,
+            26,
+            23
+          ],
+          "matches": [
+            {
+              "value": 21,
+              "at": "2026-02-24T09:00",
+              "matchStart": "2026-02-20T09:00",
+              "source": "V:09:00"
+            }
+          ]
+        },
+        "В→Г": {
+          "level": 3,
+          "chain": [
+            18,
+            26,
+            23
+          ],
+          "matches": [
+            {
+              "value": 22,
+              "at": "2026-08-26T13:22",
+              "matchStart": "2026-08-26T12:37",
+              "source": "H:2026-08-26"
+            }
+          ]
+        },
+        "Г→В": {
+          "level": 3,
+          "chain": [
+            28,
+            20,
+            18
+          ],
+          "matches": [
+            {
+              "value": 20,
+              "at": "2026-08-12T15:07",
+              "matchStart": "2026-08-09T15:07",
+              "source": "V:15:07"
+            }
+          ]
+        },
+        "Г→Г": {
+          "level": 3,
+          "chain": [
+            28,
+            20,
+            18
+          ],
+          "matches": [
+            {
+              "value": 27,
+              "at": "2025-12-14T08:00",
+              "matchStart": "2025-12-14T05:00",
+              "source": "H:2025-12-14"
+            },
+            {
+              "value": 20,
+              "at": "2026-01-14T09:00",
+              "matchStart": "2026-01-14T06:00",
+              "source": "H:2026-01-14"
+            }
+          ]
+        }
+      },
+      "strictRaw": {
+        "v1": [
+          20
+        ],
+        "v2": [
+          20
+        ],
+        "v3": [
+          27
+        ],
+        "rows": [
+          {
+            "value": 20,
+            "coverage": 2,
+            "frequency": 2,
+            "oldest": "2026-01-14T09:00",
+            "methods": [
+              "Г→В",
+              "Г→Г"
+            ]
+          },
+          {
+            "value": 21,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-02-24T09:00",
+            "methods": [
+              "В→В"
+            ]
+          },
+          {
+            "value": 22,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-08-26T13:22",
+            "methods": [
+              "В→Г"
+            ]
+          },
+          {
+            "value": 27,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2025-12-14T08:00",
+            "methods": [
+              "Г→Г"
+            ]
+          }
+        ]
+      },
+      "coverage": 2,
+      "rawfreq": 2,
+      "classification": "HIT",
+      "currentDelta": 2,
+      "jumpState": "UP_1_5",
+      "relation": "REVERSAL",
+      "d2": [
+        -2,
+        2
+      ],
+      "GLOBAL30": {
+        "hits": 8,
+        "total": 30
+      },
+      "center19_23_30": 10,
+      "globalMissStreak": 0,
+      "weightedBase": [
+        22,
+        20,
+        21
+      ],
+      "rangeReplacement": [
+        {
+          "type": "HARD_RANGE_CENTER_EXIT",
+          "from": 21,
+          "to": 18,
+          "blocks": [
+            "TIME#1",
+            "exact Δ-2",
+            "|Δ|2"
+          ]
+        }
+      ],
+      "final": [
+        22,
+        20,
         18
       ],
       "workOnErrors": "Попадание подтверждено; не продлевать state-break автоматически."
