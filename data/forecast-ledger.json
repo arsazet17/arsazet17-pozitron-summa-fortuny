@@ -39142,6 +39142,31 @@
       "classification": "HIT",
       "coverage": 2,
       "rawfreq": 6
+    },
+    {
+      "at": "2026-09-10T12:37",
+      "status": "H",
+      "actualSum": 21,
+      "forecastFixedAt": "2026-09-10T09:26:16.096Z",
+      "final": [
+        21,
+        20,
+        18
+      ],
+      "v1": [
+        21
+      ],
+      "v2": [
+        20
+      ],
+      "v3": [
+        18
+      ],
+      "comboSum": 13,
+      "stats": [],
+      "classification": "HIT",
+      "coverage": 1,
+      "rawfreq": 1
     }
   ],
   "knownHistoricalAnalogs": [
@@ -473348,6 +473373,312 @@
         21,
         20,
         25
+      ],
+      "workOnErrors": "Попадание подтверждено; не продлевать state-break автоматически."
+    },
+    {
+      "at": "2026-09-10T12:37",
+      "frozen": [
+        21,
+        20,
+        18
+      ],
+      "fact": 21,
+      "hit": true,
+      "position": 1,
+      "families": {
+        "GLOBAL": {
+          "name": "GLOBAL",
+          "candidates": [
+            21,
+            20,
+            22
+          ],
+          "sample": 10985
+        },
+        "TIME": {
+          "name": "TIME",
+          "candidates": [
+            18,
+            21,
+            20
+          ],
+          "sample": 40,
+          "targetTime": "12:37"
+        },
+        "TRANS": {
+          "name": "TRANS",
+          "candidates": [
+            21,
+            19,
+            17
+          ],
+          "sample": 1013,
+          "from": 20
+        },
+        "DELTA": {
+          "name": "DELTA",
+          "candidates": [
+            23,
+            20,
+            22
+          ],
+          "sample": 685,
+          "delta": -2
+        },
+        "JUMP": {
+          "name": "JUMP",
+          "candidates": [
+            21,
+            20,
+            22
+          ],
+          "sample": 3237,
+          "jumpClass": "DOWN_1_5"
+        },
+        "PAIR": {
+          "name": "PAIR",
+          "candidates": [
+            20,
+            21,
+            24
+          ],
+          "sample": 93,
+          "pair": [
+            22,
+            20
+          ]
+        },
+        "D2": {
+          "name": "D2",
+          "candidates": [
+            20,
+            22,
+            24
+          ],
+          "sample": 60,
+          "d2": [
+            2,
+            -2
+          ]
+        },
+        "STATE": {
+          "name": "STATE",
+          "candidates": [],
+          "sample": 0,
+          "stateLevel": null,
+          "state": []
+        }
+      },
+      "fullRaw": {
+        "В→В": {
+          "level": 4,
+          "chain": [
+            19,
+            21,
+            21,
+            18
+          ],
+          "matches": [
+            {
+              "value": 20,
+              "at": "2026-09-08T19:37",
+              "matchStart": "2026-09-04T19:37",
+              "source": "V:19:37"
+            }
+          ]
+        },
+        "В→Г": {
+          "level": 5,
+          "chain": [
+            28,
+            19,
+            21,
+            21,
+            18
+          ],
+          "matches": [
+            {
+              "value": 23,
+              "at": "2026-02-18T07:00",
+              "matchStart": "2026-02-18T02:00",
+              "source": "H:2026-02-18"
+            }
+          ]
+        },
+        "Г→В": {
+          "level": 3,
+          "chain": [
+            20,
+            22,
+            20
+          ],
+          "matches": [
+            {
+              "value": 20,
+              "at": "2026-01-08T05:00",
+              "matchStart": "2026-01-05T05:00",
+              "source": "V:05:00"
+            },
+            {
+              "value": 12,
+              "at": "2026-06-07T06:00",
+              "matchStart": "2026-06-04T06:00",
+              "source": "V:06:00"
+            },
+            {
+              "value": 30,
+              "at": "2026-06-25T11:00",
+              "matchStart": "2026-06-22T11:00",
+              "source": "V:11:00"
+            },
+            {
+              "value": 21,
+              "at": "2026-08-28T19:07",
+              "matchStart": "2026-08-25T19:07",
+              "source": "V:19:07"
+            },
+            {
+              "value": 24,
+              "at": "2026-09-09T21:37",
+              "matchStart": "2026-09-06T21:37",
+              "source": "V:21:37"
+            }
+          ]
+        },
+        "Г→Г": {
+          "level": 4,
+          "chain": [
+            24,
+            20,
+            22,
+            20
+          ],
+          "matches": [
+            {
+              "value": 18,
+              "at": "2026-01-04T18:00",
+              "matchStart": "2026-01-04T14:00",
+              "source": "H:2026-01-04"
+            }
+          ]
+        }
+      },
+      "strictRaw": {
+        "v1": [
+          20
+        ],
+        "v2": [
+          20
+        ],
+        "v3": [
+          18
+        ],
+        "rows": [
+          {
+            "value": 20,
+            "coverage": 2,
+            "frequency": 2,
+            "oldest": "2026-01-08T05:00",
+            "methods": [
+              "В→В",
+              "Г→В"
+            ]
+          },
+          {
+            "value": 12,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-06-07T06:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 18,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-01-04T18:00",
+            "methods": [
+              "Г→Г"
+            ]
+          },
+          {
+            "value": 21,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-08-28T19:07",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 23,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-02-18T07:00",
+            "methods": [
+              "В→Г"
+            ]
+          },
+          {
+            "value": 24,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-09-09T21:37",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 30,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-06-25T11:00",
+            "methods": [
+              "Г→В"
+            ]
+          }
+        ]
+      },
+      "coverage": 1,
+      "rawfreq": 1,
+      "classification": "HIT",
+      "currentDelta": 1,
+      "jumpState": "UP_1_5",
+      "relation": "REVERSAL",
+      "d2": [
+        -2,
+        1
+      ],
+      "GLOBAL30": {
+        "hits": 9,
+        "total": 30
+      },
+      "center19_23_30": 15,
+      "globalMissStreak": 0,
+      "weightedBase": [
+        21,
+        20,
+        22
+      ],
+      "rangeReplacement": [
+        {
+          "type": "HARD_RANGE_CENTER_EXIT",
+          "from": 22,
+          "to": 18,
+          "blocks": [
+            "TIME#1",
+            "RAW Г→Г",
+            "exact Δ-2",
+            "|Δ|2"
+          ]
+        }
+      ],
+      "final": [
+        21,
+        20,
+        18
       ],
       "workOnErrors": "Попадание подтверждено; не продлевать state-break автоматически."
     }
