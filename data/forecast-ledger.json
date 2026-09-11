@@ -40855,6 +40855,31 @@
       "classification": "SELECTOR-MISS / FAMILY",
       "coverage": 0,
       "rawfreq": 0
+    },
+    {
+      "at": "2026-09-11T05:37",
+      "status": "M",
+      "actualSum": 25,
+      "forecastFixedAt": "2026-09-11T02:26:19.143Z",
+      "final": [
+        20,
+        21,
+        24
+      ],
+      "v1": [
+        20
+      ],
+      "v2": [
+        21
+      ],
+      "v3": [
+        24
+      ],
+      "comboSum": 22,
+      "stats": [],
+      "classification": "SELECTOR-MISS / DEEP-RAW",
+      "coverage": 1,
+      "rawfreq": 3
     }
   ],
   "knownHistoricalAnalogs": [
@@ -505082,6 +505107,763 @@
         22
       ],
       "workOnErrors": "Факт был в FAMILY, но отсутствовал в полном RAW/final: проверить ранжирование family и weighted gate только вперёд."
+    },
+    {
+      "at": "2026-09-11T05:37",
+      "frozen": [
+        20,
+        21,
+        24
+      ],
+      "fact": 25,
+      "hit": false,
+      "position": 0,
+      "families": {
+        "GLOBAL": {
+          "name": "GLOBAL",
+          "candidates": [
+            21,
+            20,
+            22
+          ],
+          "sample": 11053
+        },
+        "TIME": {
+          "name": "TIME",
+          "candidates": [
+            22,
+            24,
+            21
+          ],
+          "sample": 41,
+          "targetTime": "05:37"
+        },
+        "TRANS": {
+          "name": "TRANS",
+          "candidates": [
+            21,
+            23,
+            20
+          ],
+          "sample": 812,
+          "from": 24
+        },
+        "DELTA": {
+          "name": "DELTA",
+          "candidates": [
+            20,
+            21,
+            24
+          ],
+          "sample": 429,
+          "delta": 6
+        },
+        "JUMP": {
+          "name": "JUMP",
+          "candidates": [
+            20,
+            21,
+            23
+          ],
+          "sample": 1331,
+          "jumpClass": "UP_6_9"
+        },
+        "PAIR": {
+          "name": "PAIR",
+          "candidates": [
+            20,
+            24,
+            19
+          ],
+          "sample": 58,
+          "pair": [
+            18,
+            24
+          ]
+        },
+        "D2": {
+          "name": "D2",
+          "candidates": [
+            20,
+            23,
+            28
+          ],
+          "sample": 20,
+          "d2": [
+            -9,
+            6
+          ]
+        },
+        "STATE": {
+          "name": "STATE",
+          "candidates": [],
+          "sample": 0,
+          "stateLevel": null,
+          "state": []
+        }
+      },
+      "fullRaw": {
+        "В→В": {
+          "level": 4,
+          "chain": [
+            20,
+            14,
+            21,
+            23
+          ],
+          "matches": [
+            {
+              "value": 19,
+              "at": "2026-08-05T03:07",
+              "matchStart": "2026-08-01T03:07",
+              "source": "V:03:07"
+            }
+          ]
+        },
+        "В→Г": {
+          "level": 3,
+          "chain": [
+            14,
+            21,
+            23
+          ],
+          "matches": [
+            {
+              "value": 26,
+              "at": "2026-09-05T20:07",
+              "matchStart": "2026-09-05T19:22",
+              "source": "H:2026-09-05"
+            }
+          ]
+        },
+        "Г→В": {
+          "level": 2,
+          "chain": [
+            18,
+            24
+          ],
+          "matches": [
+            {
+              "value": 17,
+              "at": "2026-02-10T12:00",
+              "matchStart": "2026-02-08T12:00",
+              "source": "V:12:00"
+            },
+            {
+              "value": 24,
+              "at": "2025-10-16T14:00",
+              "matchStart": "2025-10-14T14:00",
+              "source": "V:14:00"
+            },
+            {
+              "value": 26,
+              "at": "2026-02-06T14:00",
+              "matchStart": "2026-02-04T14:00",
+              "source": "V:14:00"
+            },
+            {
+              "value": 24,
+              "at": "2026-06-08T14:00",
+              "matchStart": "2026-06-06T14:00",
+              "source": "V:14:00"
+            },
+            {
+              "value": 28,
+              "at": "2026-07-21T14:00",
+              "matchStart": "2026-07-19T14:00",
+              "source": "V:14:00"
+            },
+            {
+              "value": 24,
+              "at": "2026-07-29T14:00",
+              "matchStart": "2026-07-27T14:00",
+              "source": "V:14:00"
+            },
+            {
+              "value": 19,
+              "at": "2026-03-24T15:00",
+              "matchStart": "2026-03-22T15:00",
+              "source": "V:15:00"
+            },
+            {
+              "value": 16,
+              "at": "2026-06-03T15:00",
+              "matchStart": "2026-06-01T15:00",
+              "source": "V:15:00"
+            },
+            {
+              "value": 24,
+              "at": "2026-01-09T16:00",
+              "matchStart": "2026-01-07T16:00",
+              "source": "V:16:00"
+            },
+            {
+              "value": 24,
+              "at": "2026-01-18T16:00",
+              "matchStart": "2026-01-16T16:00",
+              "source": "V:16:00"
+            },
+            {
+              "value": 22,
+              "at": "2026-03-04T16:00",
+              "matchStart": "2026-03-02T16:00",
+              "source": "V:16:00"
+            },
+            {
+              "value": 18,
+              "at": "2026-04-07T17:00",
+              "matchStart": "2026-04-05T17:00",
+              "source": "V:17:00"
+            },
+            {
+              "value": 19,
+              "at": "2026-02-24T18:00",
+              "matchStart": "2026-02-22T18:00",
+              "source": "V:18:00"
+            },
+            {
+              "value": 12,
+              "at": "2026-03-21T18:00",
+              "matchStart": "2026-03-19T18:00",
+              "source": "V:18:00"
+            },
+            {
+              "value": 21,
+              "at": "2026-02-14T19:00",
+              "matchStart": "2026-02-12T19:00",
+              "source": "V:19:00"
+            },
+            {
+              "value": 14,
+              "at": "2026-05-03T19:00",
+              "matchStart": "2026-05-01T19:00",
+              "source": "V:19:00"
+            },
+            {
+              "value": 23,
+              "at": "2026-06-20T19:00",
+              "matchStart": "2026-06-18T19:00",
+              "source": "V:19:00"
+            },
+            {
+              "value": 21,
+              "at": "2026-01-06T20:00",
+              "matchStart": "2026-01-04T20:00",
+              "source": "V:20:00"
+            },
+            {
+              "value": 23,
+              "at": "2026-03-02T20:00",
+              "matchStart": "2026-02-28T20:00",
+              "source": "V:20:00"
+            },
+            {
+              "value": 19,
+              "at": "2026-01-11T21:00",
+              "matchStart": "2026-01-09T21:00",
+              "source": "V:21:00"
+            },
+            {
+              "value": 16,
+              "at": "2025-10-23T22:00",
+              "matchStart": "2025-10-21T22:00",
+              "source": "V:22:00"
+            },
+            {
+              "value": 16,
+              "at": "2026-03-20T22:00",
+              "matchStart": "2026-03-18T22:00",
+              "source": "V:22:00"
+            },
+            {
+              "value": 23,
+              "at": "2025-10-24T23:00",
+              "matchStart": "2025-10-22T23:00",
+              "source": "V:23:00"
+            },
+            {
+              "value": 24,
+              "at": "2025-11-22T00:00",
+              "matchStart": "2025-11-20T00:00",
+              "source": "V:00:00"
+            },
+            {
+              "value": 24,
+              "at": "2026-05-30T00:00",
+              "matchStart": "2026-05-28T00:00",
+              "source": "V:00:00"
+            },
+            {
+              "value": 20,
+              "at": "2025-10-16T01:00",
+              "matchStart": "2025-10-14T01:00",
+              "source": "V:01:00"
+            },
+            {
+              "value": 22,
+              "at": "2026-04-24T01:00",
+              "matchStart": "2026-04-22T01:00",
+              "source": "V:01:00"
+            },
+            {
+              "value": 19,
+              "at": "2026-03-13T03:00",
+              "matchStart": "2026-03-11T03:00",
+              "source": "V:03:00"
+            },
+            {
+              "value": 18,
+              "at": "2026-06-13T03:00",
+              "matchStart": "2026-06-11T03:00",
+              "source": "V:03:00"
+            },
+            {
+              "value": 22,
+              "at": "2026-07-12T04:00",
+              "matchStart": "2026-07-10T04:00",
+              "source": "V:04:00"
+            },
+            {
+              "value": 17,
+              "at": "2025-12-12T05:00",
+              "matchStart": "2025-12-10T05:00",
+              "source": "V:05:00"
+            },
+            {
+              "value": 18,
+              "at": "2026-01-24T05:00",
+              "matchStart": "2026-01-22T05:00",
+              "source": "V:05:00"
+            },
+            {
+              "value": 15,
+              "at": "2026-03-15T05:00",
+              "matchStart": "2026-03-13T05:00",
+              "source": "V:05:00"
+            },
+            {
+              "value": 27,
+              "at": "2026-06-20T05:00",
+              "matchStart": "2026-06-18T05:00",
+              "source": "V:05:00"
+            },
+            {
+              "value": 25,
+              "at": "2025-11-16T06:00",
+              "matchStart": "2025-11-14T06:00",
+              "source": "V:06:00"
+            },
+            {
+              "value": 24,
+              "at": "2026-04-02T07:00",
+              "matchStart": "2026-03-31T07:00",
+              "source": "V:07:00"
+            },
+            {
+              "value": 22,
+              "at": "2025-10-23T08:00",
+              "matchStart": "2025-10-21T08:00",
+              "source": "V:08:00"
+            },
+            {
+              "value": 19,
+              "at": "2026-01-16T08:00",
+              "matchStart": "2026-01-14T08:00",
+              "source": "V:08:00"
+            },
+            {
+              "value": 20,
+              "at": "2026-06-18T09:00",
+              "matchStart": "2026-06-16T09:00",
+              "source": "V:09:00"
+            },
+            {
+              "value": 28,
+              "at": "2025-12-26T10:00",
+              "matchStart": "2025-12-24T10:00",
+              "source": "V:10:00"
+            },
+            {
+              "value": 20,
+              "at": "2026-04-18T10:00",
+              "matchStart": "2026-04-16T10:00",
+              "source": "V:10:00"
+            },
+            {
+              "value": 24,
+              "at": "2026-06-28T10:00",
+              "matchStart": "2026-06-26T10:00",
+              "source": "V:10:00"
+            },
+            {
+              "value": 25,
+              "at": "2026-02-22T11:00",
+              "matchStart": "2026-02-20T11:00",
+              "source": "V:11:00"
+            },
+            {
+              "value": 16,
+              "at": "2026-08-04T01:52",
+              "matchStart": "2026-08-02T01:52",
+              "source": "V:01:52"
+            },
+            {
+              "value": 24,
+              "at": "2026-09-07T01:52",
+              "matchStart": "2026-09-05T01:52",
+              "source": "V:01:52"
+            },
+            {
+              "value": 26,
+              "at": "2026-08-29T02:52",
+              "matchStart": "2026-08-27T02:52",
+              "source": "V:02:52"
+            },
+            {
+              "value": 24,
+              "at": "2026-08-28T05:37",
+              "matchStart": "2026-08-26T05:37",
+              "source": "V:05:37"
+            },
+            {
+              "value": 11,
+              "at": "2026-09-05T05:37",
+              "matchStart": "2026-09-03T05:37",
+              "source": "V:05:37"
+            },
+            {
+              "value": 24,
+              "at": "2026-08-26T08:52",
+              "matchStart": "2026-08-24T08:52",
+              "source": "V:08:52"
+            },
+            {
+              "value": 21,
+              "at": "2026-09-06T09:52",
+              "matchStart": "2026-09-04T09:52",
+              "source": "V:09:52"
+            },
+            {
+              "value": 25,
+              "at": "2026-08-22T11:37",
+              "matchStart": "2026-08-20T11:37",
+              "source": "V:11:37"
+            },
+            {
+              "value": 23,
+              "at": "2026-09-02T11:52",
+              "matchStart": "2026-08-31T11:52",
+              "source": "V:11:52"
+            },
+            {
+              "value": 21,
+              "at": "2026-08-06T12:52",
+              "matchStart": "2026-08-04T12:52",
+              "source": "V:12:52"
+            },
+            {
+              "value": 24,
+              "at": "2026-08-19T13:07",
+              "matchStart": "2026-08-17T13:07",
+              "source": "V:13:07"
+            },
+            {
+              "value": 23,
+              "at": "2026-08-18T14:37",
+              "matchStart": "2026-08-16T14:37",
+              "source": "V:14:37"
+            },
+            {
+              "value": 19,
+              "at": "2026-08-18T16:37",
+              "matchStart": "2026-08-16T16:37",
+              "source": "V:16:37"
+            },
+            {
+              "value": 15,
+              "at": "2026-08-23T19:22",
+              "matchStart": "2026-08-21T19:22",
+              "source": "V:19:22"
+            },
+            {
+              "value": 24,
+              "at": "2026-08-13T19:37",
+              "matchStart": "2026-08-11T19:37",
+              "source": "V:19:37"
+            },
+            {
+              "value": 21,
+              "at": "2026-09-08T20:07",
+              "matchStart": "2026-09-06T20:07",
+              "source": "V:20:07"
+            },
+            {
+              "value": 20,
+              "at": "2026-08-23T20:22",
+              "matchStart": "2026-08-21T20:22",
+              "source": "V:20:22"
+            },
+            {
+              "value": 26,
+              "at": "2026-08-19T21:22",
+              "matchStart": "2026-08-17T21:22",
+              "source": "V:21:22"
+            },
+            {
+              "value": 23,
+              "at": "2026-08-31T21:37",
+              "matchStart": "2026-08-29T21:37",
+              "source": "V:21:37"
+            },
+            {
+              "value": 19,
+              "at": "2026-08-17T23:07",
+              "matchStart": "2026-08-15T23:07",
+              "source": "V:23:07"
+            },
+            {
+              "value": 27,
+              "at": "2026-09-05T23:37",
+              "matchStart": "2026-09-03T23:37",
+              "source": "V:23:37"
+            }
+          ]
+        },
+        "Г→Г": {
+          "level": 3,
+          "chain": [
+            27,
+            18,
+            24
+          ],
+          "matches": [
+            {
+              "value": 18,
+              "at": "2025-12-25T11:00",
+              "matchStart": "2025-12-25T08:00",
+              "source": "H:2025-12-25"
+            },
+            {
+              "value": 23,
+              "at": "2026-03-17T13:00",
+              "matchStart": "2026-03-17T10:00",
+              "source": "H:2026-03-17"
+            },
+            {
+              "value": 20,
+              "at": "2026-07-19T11:00",
+              "matchStart": "2026-07-19T08:00",
+              "source": "H:2026-07-19"
+            },
+            {
+              "value": 21,
+              "at": "2026-08-21T05:22",
+              "matchStart": "2026-08-21T04:37",
+              "source": "H:2026-08-21"
+            }
+          ]
+        }
+      },
+      "strictRaw": {
+        "v1": [
+          19
+        ],
+        "v2": [
+          24
+        ],
+        "v3": [
+          12
+        ],
+        "rows": [
+          {
+            "value": 19,
+            "coverage": 2,
+            "frequency": 8,
+            "oldest": "2026-01-11T21:00",
+            "methods": [
+              "В→В",
+              "Г→В"
+            ]
+          },
+          {
+            "value": 23,
+            "coverage": 2,
+            "frequency": 7,
+            "oldest": "2025-10-24T23:00",
+            "methods": [
+              "Г→В",
+              "Г→Г"
+            ]
+          },
+          {
+            "value": 21,
+            "coverage": 2,
+            "frequency": 6,
+            "oldest": "2026-01-06T20:00",
+            "methods": [
+              "Г→В",
+              "Г→Г"
+            ]
+          },
+          {
+            "value": 20,
+            "coverage": 2,
+            "frequency": 5,
+            "oldest": "2025-10-16T01:00",
+            "methods": [
+              "Г→В",
+              "Г→Г"
+            ]
+          },
+          {
+            "value": 18,
+            "coverage": 2,
+            "frequency": 4,
+            "oldest": "2025-12-25T11:00",
+            "methods": [
+              "Г→В",
+              "Г→Г"
+            ]
+          },
+          {
+            "value": 26,
+            "coverage": 2,
+            "frequency": 4,
+            "oldest": "2026-02-06T14:00",
+            "methods": [
+              "В→Г",
+              "Г→В"
+            ]
+          },
+          {
+            "value": 24,
+            "coverage": 1,
+            "frequency": 14,
+            "oldest": "2025-10-16T14:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 16,
+            "coverage": 1,
+            "frequency": 4,
+            "oldest": "2025-10-23T22:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 22,
+            "coverage": 1,
+            "frequency": 4,
+            "oldest": "2025-10-23T08:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 25,
+            "coverage": 1,
+            "frequency": 3,
+            "oldest": "2025-11-16T06:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 15,
+            "coverage": 1,
+            "frequency": 2,
+            "oldest": "2026-03-15T05:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 17,
+            "coverage": 1,
+            "frequency": 2,
+            "oldest": "2025-12-12T05:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 27,
+            "coverage": 1,
+            "frequency": 2,
+            "oldest": "2026-06-20T05:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 28,
+            "coverage": 1,
+            "frequency": 2,
+            "oldest": "2025-12-26T10:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 11,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-09-05T05:37",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 12,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-03-21T18:00",
+            "methods": [
+              "Г→В"
+            ]
+          },
+          {
+            "value": 14,
+            "coverage": 1,
+            "frequency": 1,
+            "oldest": "2026-05-03T19:00",
+            "methods": [
+              "Г→В"
+            ]
+          }
+        ]
+      },
+      "coverage": 1,
+      "rawfreq": 3,
+      "classification": "SELECTOR-MISS / DEEP-RAW",
+      "currentDelta": 1,
+      "jumpState": "UP_1_5",
+      "relation": "CONTINUATION",
+      "d2": [
+        6,
+        1
+      ],
+      "GLOBAL30": {
+        "hits": 4,
+        "total": 30
+      },
+      "center19_23_30": 11,
+      "globalMissStreak": 4,
+      "weightedBase": [
+        20,
+        21,
+        24
+      ],
+      "rangeReplacement": [],
+      "final": [
+        20,
+        21,
+        24
+      ],
+      "workOnErrors": "Факт был в полном RAW: ошибка selector, не structural. Усилить контроль сжатия и family-support только вперёд."
     }
   ]
 }
