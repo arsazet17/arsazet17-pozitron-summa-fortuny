@@ -387,8 +387,13 @@ export function selectHardRange(families,methods,jumpTrack){
         const weakestRow=final
           .map((v,i)=>({v,i,score:scores.find(x=>x.value===v)?.score??0}))
           .sort((a,b)=>a.score-b.score||b.i-a.i)[0];
-        final[weakestRow.i]=delta1;
-        replacements.push({type:'JUMP_CLUSTER',from:weakestRow.v,to:delta1,blocks});
+        const candidate=[...final];
+        candidate[weakestRow.i]=delta1;
+        // A jump correction must not undo the hard center-exit constraint.
+        if(!candidate.every(x=>x>=LAW.centerMin&&x<=LAW.centerMax)){
+          final=candidate;
+          replacements.push({type:'JUMP_CLUSTER',from:weakestRow.v,to:delta1,blocks});
+        }
       }
     }
   }

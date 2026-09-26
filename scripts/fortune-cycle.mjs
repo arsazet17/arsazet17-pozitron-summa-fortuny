@@ -382,23 +382,27 @@ if (!current || current.targetAt !== targetAt) {
     };
 
     forecast.audit = auditForecast(forecast);
-    forecast.fixedAt = now.toISOString();
-    forecast.locked = true;
-    if (!forecast.audit.ok) throw new Error(`Аудит прогноза не пройден: ${forecast.audit.message}`);
-
-    current = forecast;
-    history.push({targetAt,fixedAt:forecast.fixedAt,checked:false,forecast});
-
-    console.log(`FORECAST_FIXED ${targetAt}`);
-    console.log(`MODEL=${forecast.modelVersion}`);
-    console.log(`FINAL=${forecast.final.join('/') || '—'}`);
-    console.log(`BASE=${forecast.weightedBase.join('/') || '—'}`);
-    console.log(`SELECTOR=${forecast.selector}`);
-    console.log(`JUMP=${forecast.jumpTrack?.delta ?? '—'} ${forecast.jumpTrack?.jumpState ?? ''}`);
-    console.log(`STRICT_RAW V1=${forecast.strictRaw?.v1?.join('/') || '—'} V2=${forecast.strictRaw?.v2?.join('/') || '—'} V3=${forecast.strictRaw?.v3?.join('/') || '—'}`);
-    console.log(`COMBO=${forecast.combo?.complete ? `${forecast.combo.combo.join('-')}=${forecast.combo.sum}` : 'НЕТ ПОЛНОГО ПРОГНОЗА'}`);
-    console.log(`STATS=${forecast.stats.signal.join('/') || 'НЕТ СИГНАЛА'}`);
-    console.log(`AUDIT=${forecast.audit.message}`);
+    if (!forecast.audit.ok) {
+      current = null;
+      console.warn(`::warning::FORECAST_REJECTED ${targetAt}: ${forecast.audit.message}; facts and ledger saved without a new forecast`);
+    } else {
+      forecast.fixedAt = now.toISOString();
+      forecast.locked = true;
+  
+      current = forecast;
+      history.push({targetAt,fixedAt:forecast.fixedAt,checked:false,forecast});
+  
+      console.log(`FORECAST_FIXED ${targetAt}`);
+      console.log(`MODEL=${forecast.modelVersion}`);
+      console.log(`FINAL=${forecast.final.join('/') || '—'}`);
+      console.log(`BASE=${forecast.weightedBase.join('/') || '—'}`);
+      console.log(`SELECTOR=${forecast.selector}`);
+      console.log(`JUMP=${forecast.jumpTrack?.delta ?? '—'} ${forecast.jumpTrack?.jumpState ?? ''}`);
+      console.log(`STRICT_RAW V1=${forecast.strictRaw?.v1?.join('/') || '—'} V2=${forecast.strictRaw?.v2?.join('/') || '—'} V3=${forecast.strictRaw?.v3?.join('/') || '—'}`);
+      console.log(`COMBO=${forecast.combo?.complete ? `${forecast.combo.combo.join('-')}=${forecast.combo.sum}` : 'НЕТ ПОЛНОГО ПРОГНОЗА'}`);
+      console.log(`STATS=${forecast.stats.signal.join('/') || 'НЕТ СИГНАЛА'}`);
+      console.log(`AUDIT=${forecast.audit.message}`);
+    }
   }
 } else {
   console.log(`Forecast ${targetAt} already fixed at ${current.fixedAt}; not changed`);
