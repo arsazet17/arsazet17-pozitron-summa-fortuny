@@ -1,0 +1,21 @@
+name: Fortune audit regression
+on:
+  pull_request:
+    paths: ['engine.js', 'scripts/fortune-cycle.mjs', 'tests/fortune-audit.mjs', '.github/workflows/fortune-audit-test.yml']
+  push:
+    branches: [main, codex/fix-fortune-audit-update]
+    paths: ['engine.js', 'scripts/fortune-cycle.mjs', 'tests/fortune-audit.mjs', '.github/workflows/fortune-audit-test.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/fortune-audit.mjs
