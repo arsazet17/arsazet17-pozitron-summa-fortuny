@@ -4581783,7 +4581783,7 @@
   {
     "targetAt": "2026-10-23T15:22",
     "fixedAt": "2026-10-23T12:15:21.396Z",
-    "checked": false,
+    "checked": true,
     "forecast": {
       "modelVersion": "HARD-RANGE-JUMP-TRACK-2026-08-31",
       "targetAt": "2026-10-23T15:22",
@@ -4582489,6 +4582489,72 @@
         "message": "Отклонений от действующих законов не найдено"
       },
       "fixedAt": "2026-10-23T12:15:21.396Z"
+    },
+    "checkedAt": "2026-10-23T12:40:17.985Z",
+    "actual": {
+      "number": "015101",
+      "at": "2026-10-23T15:22",
+      "combo": [
+        1,
+        4,
+        5,
+        1,
+        6,
+        6
+      ],
+      "sum": 23
+    },
+    "postFactAudit": {
+      "frozen": [
+        20,
+        21,
+        25
+      ],
+      "fact": 23,
+      "hit": false,
+      "position": 0,
+      "familyHits": [
+        "TIME",
+        "TRANS",
+        "DELTA",
+        "D2"
+      ],
+      "rawRoutes": [],
+      "coverage": 0,
+      "rawfreq": 0,
+      "classification": "SELECTOR-MISS / FAMILY",
+      "currentDelta": -2,
+      "jumpState": "DOWN_1_5",
+      "relation": "CONTINUATION",
+      "d2": [
+        -1,
+        -2
+      ],
+      "center19_23_30": 12,
+      "workOnErrors": "Факт был в FAMILY, но отсутствовал в полном RAW/final: проверить ранжирование family и weighted gate только вперёд."
+    },
+    "result": {
+      "mainStatus": "M",
+      "actualSum": 23,
+      "finalHit": false,
+      "position": 0,
+      "v1Hit": false,
+      "v2Hit": false,
+      "v3Hit": false,
+      "rawHits": [],
+      "familyHits": [
+        "TIME",
+        "TRANS",
+        "DELTA",
+        "D2"
+      ],
+      "coverage": 0,
+      "rawfreq": 0,
+      "classification": "SELECTOR-MISS / FAMILY",
+      "comboHit": false,
+      "statsHit": false,
+      "positionMatches": 2,
+      "workOnErrors": "Факт был в FAMILY, но отсутствовал в полном RAW/final: проверить ранжирование family и weighted gate только вперёд."
     }
   }
 ]
