@@ -85,20 +85,40 @@ async function renderResults(){
   }catch{historyCache=[]}
   const items=[...historyCache].sort((a,b)=>String(b.targetAt).localeCompare(String(a.targetAt))).slice(0,60);
   if(!items.length){host.innerHTML='<div class="card small">Пока нет зафиксированных прогнозов.</div>';return}
+  const numByAt=new Map(facts.map(x=>[x.at,Number(x.number)]));
   host.innerHTML=items.map(e=>{
     const fc=e.forecast||{};
     const actual=e.actual;
     const ev=actual?evaluateForecast(fc,actual,rules):null;
     const isNew=Boolean(fc.picks);
-    const head=`<div class="res-head"><b>${fmtAt(e.targetAt)}</b>${actual?`<span class="res-fact">Σ ${actual.sum}</span>`:'<span class="wait">⏳ ждём тираж</span>'}</div>`;
+    const no=numByAt.get(e.targetAt);
+    let status='<span class="wait">⏳ ждём</span>';
+    if(ev){
+      const hits=isNew?[ev.often.hit,ev.value.hit,ev.combo.hit].filter(Boolean).length:(ev.often.hit?1:0);
+      status=hits?`<span class="ok res-badge">✓ ${isNew?'попал '+hits+' из 3':'попал'}</span>`:'<span class="no res-badge">мимо</span>';
+    }
+    const head=`<div class="res-head"><div><b>${fmtAt(e.targetAt)}</b>${no?`<small> №${no}</small>`:''}</div><div class="res-right">${actual?`<span class="res-fact">Σ ${actual.sum}</span>`:''}${status}<span class="chev">▾</span></div></div>`;
+    const cats=ev?.combinationCategories||[];
+    const extra=actual?`<div class="res-extra">
+        <div>Выплата за сумму Σ ${actual.sum}: <b>${rub(ev.sumPayout)}</b> · шанс ${pct(SUM_CHANCE[actual.sum]||0)}</div>
+        <div>Комбинация тиража: ${cats.length?cats.map(c=>`<b>${esc(c.label)}</b> (${rub(c.payout)})`).join(', '):'<span class="no">ни одна категория не выпала</span>'}</div>
+        ${fc.fixedAt?`<div class="small">Прогноз зафиксирован ${new Date(fc.fixedAt).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'})}</div>`:''}
+      </div>`:`<div class="res-extra small">Тираж ещё не прошёл — результат появится сразу после него.</div>`;
     const lines=isNew
       ?`<div class="res-line"><span>Чаще</span><span>${sumChips(fc.picks.often.sums,actual?.sum)}</span><span>${ev?(ev.often.hit?'<b class="ok">попал · '+rub(ev.often.payout)+'</b>':'<span class="no">мимо</span>'):''}</span></div>
          <div class="res-line"><span>Выгоднее</span><span>${sumChips(fc.picks.value.sums,actual?.sum)}</span><span>${ev?(ev.value.hit?'<b class="ok">попал · '+rub(ev.value.payout)+'</b>':'<span class="no">мимо</span>'):''}</span></div>
          <div class="res-line"><span>Комб.</span><span class="small">${esc(fc.comboPick?.label||'')}</span><span>${ev?(ev.combo.hit?'<b class="ok">попал · '+rub(ev.combo.payout)+'</b>':'<span class="no">мимо</span>'):''}</span></div>`
       :`<div class="res-line"><span>Старый движок</span><span>${sumChips(ev?.often.sums||fc.final||[],actual?.sum)}</span><span>${ev?(ev.often.hit?'<b class="ok">попал</b>':'<span class="no">мимо</span>'):''}</span></div>`;
-    return `<div class="card res">${head}${actual?`<div class="balls">${ballsHtml(actual.combo)}</div>`:''}${lines}</div>`;
+    const open=openResults.has(e.targetAt);
+    return `<div class="card res${open?' open':''}" data-at="${esc(e.targetAt)}">${head}<div class="res-body">${actual?`<div class="balls">${ballsHtml(actual.combo)}</div>`:''}${lines}${extra}</div></div>`;
   }).join('');
 }
+const openResults=new Set();
+$('#resultsList').addEventListener('click',e=>{
+  const card=e.target.closest('.res');if(!card) return;
+  const at=card.dataset.at;
+  if(card.classList.toggle('open')) openResults.add(at); else openResults.delete(at);
+});
 
 function renderRules(){
   const sums=Object.keys(rules.sumPayouts||{}).map(Number).sort((a,b)=>a-b);
