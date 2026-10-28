@@ -1,4 +1,4 @@
-const APP_VERSION='1.2.1';
+const APP_VERSION='2.0.0';
 
 const btn=document.getElementById('updateAppBtn');
 const versionEl=document.getElementById('appVersion');

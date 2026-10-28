@@ -1,322 +1,149 @@
-import {parseLuckyCsv,nextScheduledAfter,evaluateForecast,combinationCategories,sumPayout} from './engine.js';
+import {parseLuckyCsv,nextScheduledAfter,evaluateForecast,combinationCategories,calculateForecast,SUM_CHANCE,chanceOf,PICKS,COMBO_PICK} from './engine.js';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const nf=new Intl.NumberFormat('ru-RU');
+const rub=n=>nf.format(Math.round(n||0))+' ₽';
+const pct=x=>(x>0&&x<0.001)?'1 из '+nf.format(Math.round(1/x)):(x*100).toFixed(1).replace('.',',')+'%';
+const fmtAt=at=>{if(!at) return '—';const [d,t]=at.split('T');const [y,m,dd]=d.split('-');return `${dd}.${m}.${y.slice(2)} ${t}`};
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-let facts=[],rules={},ledger={},forecast=null;
-let syncBusy=false;
+let facts=[],rules={},current=null,scoreN=96,historyCache=null,lastKey='';
 
-const rub=n=>n?new Intl.NumberFormat('ru-RU').format(n)+' ₽':'—';
-const fmtAt=at=>{const [d,t]=at.split('T');const [y,m,dd]=d.split('-');return `${dd}.${m}.${y} ${t}`};
-const picks=a=>a?.length?a.join(' / '):'—';
+// Шанс категорий комбинации и позиций — точный перебор 6^6 исходов.
+const comboChance=(()=>{let out=null;return r=>{
+  if(out) return out;out={};let t=0;const c=[0,0,0,0,0,0];
+  const rec=i=>{if(i===6){t++;for(const k of combinationCategories(c,r)) out[k.key]=(out[k.key]||0)+1;return}for(let v=1;v<=6;v++){c[i]=v;rec(i+1)}};
+  rec(0);for(const k in out) out[k]/=t;return out;
+}})();
+const posChance=k=>{const C=(n,r)=>{let x=1;for(let i=0;i<r;i++)x=x*(n-i)/(i+1);return x};return C(6,k)*Math.pow(1/6,k)*Math.pow(5/6,6-k)};
 
-async function fetchFreshData(){
+async function load(){
   const bust='?v='+Date.now();
-  const [csv,rr,ll,fixed]=await Promise.all([
-    fetch('./data/fortune-archive.csv'+bust,{cache:'no-store'}).then(r=>{
-      if(!r.ok) throw new Error('archive HTTP '+r.status);
-      return r.text();
-    }),
-    fetch('./data/rules.json'+bust,{cache:'no-store'}).then(r=>{
-      if(!r.ok) throw new Error('rules HTTP '+r.status);
-      return r.json();
-    }),
-    fetch('./data/forecast-ledger.json'+bust,{cache:'no-store'}).then(r=>{
-      if(!r.ok) throw new Error('ledger HTTP '+r.status);
-      return r.json();
-    }),
+  const [csv,rr,cur]=await Promise.all([
+    fetch('./data/fortune-archive.csv'+bust,{cache:'no-store'}).then(r=>{if(!r.ok) throw new Error('archive HTTP '+r.status);return r.text()}),
+    fetch('./data/rules.json'+bust,{cache:'no-store'}).then(r=>r.json()),
     fetch('./data/current-forecast.json'+bust,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
   ]);
-
-  return {
-    facts:parseLuckyCsv(csv),
-    rules:rr,
-    ledger:ll,
-    forecast:fixed
-  };
+  return {facts:parseLuckyCsv(csv),rules:rr,current:cur};
 }
 
-function expectedTargetOf(nextFacts){
-  if(!nextFacts?.length) return null;
-  return nextScheduledAfter(nextFacts.at(-1).at);
-}
+const ballsHtml=combo=>(combo||[]).map(x=>`<span class="ball">${x}</span>`).join('');
+const sumChips=(sums,actual)=>sums.map(s=>`<span class="sum-chip${s===actual?' on':''}">${s}</span>`).join('');
+const mark=hit=>hit?'<span class="ok">✓</span>':'<span class="no">·</span>';
 
-function forecastIsCurrent(fixed,nextFacts){
-  const expected=expectedTargetOf(nextFacts);
-  return Boolean(
-    fixed &&
-    fixed.locked &&
-    expected &&
-    fixed.targetAt===expected
-  );
-}
-
-function showWaitingForFreshForecast(nextFacts){
-  const last=nextFacts?.at(-1);
-  if(!last) return;
-  const expected=expectedTargetOf(nextFacts);
-
-  forecast=null;
-
-  if($('#lastDraw')) $('#lastDraw').textContent=fmtAt(last.at);
-  if($('#lastDrawNo')) $('#lastDrawNo').textContent='№ '+last.number;
-  if($('#nextDraw')) $('#nextDraw').textContent=fmtAt(expected);
-  if($('#archiveStatus')) $('#archiveStatus').textContent=nextFacts.length+' тиражей';
-
-  if($('#fTarget')) $('#fTarget').textContent=expected.slice(11,16);
-  if($('#fLast')) $('#fLast').textContent=last.at.slice(11,16);
-
-  for(const id of ['v1','v2','v3']){
-    if($('#'+id)) $('#'+id).textContent='—';
-  }
-
-  if($('#comboCells')) $('#comboCells').innerHTML='<span class="small">Ожидается новый зафиксированный прогноз</span>';
-  if($('#comboSum')) $('#comboSum').textContent='—';
-  if($('#statSignal')) $('#statSignal').textContent='—';
-  if($('#statLabel')) $('#statLabel').textContent='СИНХРОНИЗАЦИЯ';
-  if($('#statReason')) $('#statReason').textContent=`Факт ${fmtAt(last.at)} уже получен. Ждём frozen на ${fmtAt(expected)}.`;
-
-  if($('#strongText')) $('#strongText').textContent='Ожидается новый frozen';
-  if($('#homeStrong')) $('#homeStrong').textContent='Ожидается новый frozen';
-  if($('#sumChips')) $('#sumChips').innerHTML='';
-  if($('#comboPrediction')) $('#comboPrediction').innerHTML='';
-  if($('#positionPrediction')) $('#positionPrediction').innerHTML='';
-
-  if($('#chains')) $('#chains').innerHTML=
-    `<div class="card"><div class="sec-title">Синхронизация</div><div class="small">Новый факт уже есть. Старый прогноз скрыт. Ожидается frozen на ${fmtAt(expected)}.</div></div>`;
-  if($('#methods')) $('#methods').innerHTML='';
-  if($('#variantTable')) $('#variantTable').innerHTML='';
-  if($('#repeatGrid')) $('#repeatGrid').innerHTML='';
-  if($('#comboPositionsDetail')) $('#comboPositionsDetail').innerHTML='';
-}
-
-async function syncForecast({fatal=false}={}){
-  if(syncBusy) return;
-  syncBusy=true;
-
-  try{
-    const fresh=await fetchFreshData();
-    if(!fresh.facts.length) throw new Error('Архив фактов пуст');
-
-    facts=fresh.facts;
-    rules=fresh.rules;
-    ledger=fresh.ledger;
-
-    if(!forecastIsCurrent(fresh.forecast,facts)){
-      showWaitingForFreshForecast(facts);
-      return;
-    }
-
-    const changed=!forecast || forecast.targetAt!==fresh.forecast.targetAt || forecast.fixedAt!==fresh.forecast.fixedAt;
-    forecast=fresh.forecast;
-
-    if(changed || fatal) render();
-  }catch(err){
-    console.error('Forecast sync failed',err);
-    if(fatal){
-      document.body.innerHTML=
-        `<div style="padding:30px;color:white;background:#220709;min-height:100vh">
-          <h1>Ошибка загрузки</h1>
-          <pre>${String(err.stack||err)}</pre>
-        </div>`;
-    }
-  }finally{
-    syncBusy=false;
-  }
-}
-
-async function boot(){
-  await syncForecast({fatal:true});
-}
-
-function render(){
-  if(!forecast || !facts.length) return;
+function renderHome(){
   const last=facts.at(-1);
-
-  $('#lastDraw').textContent=fmtAt(last.at);
-  $('#lastDrawNo').textContent='№ '+last.number;
-  $('#nextDraw').textContent=fmtAt(forecast.targetAt);
-  $('#archiveStatus').textContent=facts.length+' тиражей';
-
-  $('#fTarget').textContent=forecast.targetAt.slice(11,16);
-  $('#fLast').textContent=last.at.slice(11,16);
-  $('#v1').textContent=picks(forecast.v1);
-  $('#v2').textContent=picks(forecast.v2);
-  $('#v3').textContent=picks(forecast.v3);
-
-  $('#comboCells').innerHTML=forecast.combo?.complete
-    ? forecast.combo.combo.map(x=>`<span class="die-cell">${x}</span>`).join('<b>-</b>')
-    : 'НЕТ ПОЛНОГО ПРОГНОЗА';
-
-  $('#comboSum').textContent=forecast.combo?.complete?forecast.combo.sum:'—';
-  $('#statSignal').textContent=forecast.stats?.signal?.length?picks(forecast.stats.signal):'—';
-  $('#statLabel').textContent=forecast.stats?.label||'';
-  $('#statReason').textContent=forecast.stats?.reason||'';
-
-  $('#strongText').textContent=strongSignal();
-  $('#homeStrong').textContent=strongSignal();
-
-  const sums=[...new Set([
-    ...(forecast.v1||[]),...(forecast.v2||[]),...(forecast.v3||[]),
-    ...(forecast.combo?.complete?[forecast.combo.sum]:[])
-  ])];
-
-  $('#sumChips').innerHTML=sums.map(s=>`<span class="chip">${s}<small> · ${rub(sumPayout(s,rules))}</small></span>`).join('');
-
-  if(forecast.combo?.complete){
-    const cats=combinationCategories(forecast.combo.combo,rules);
-    $('#comboPrediction').innerHTML=
-      `<div class="combo-row">${forecast.combo.combo.map(x=>`<span class="die-cell">${x}</span>`).join('')}</div>
-       <div class="small" style="margin-top:9px">${cats.length?cats.map(c=>`${c.label} (${rub(c.payout)})`).join(' · '):'Отдельная категория комбинации не срабатывает'}</div>`;
-
-    $('#positionPrediction').innerHTML=forecast.combo.combo.map((x,i)=>`<div><b>${i+1}</b><br>↓<br><span class="hot"><b>${x}</b></span></div>`).join('');
-  }else{
-    $('#comboPrediction').innerHTML='';
-    $('#positionPrediction').innerHTML='';
-  }
-
-  renderEngine();
-  renderRules();
-  renderArchive();
+  const target=nextScheduledAfter(last.at);
+  const nextNo=/^\d+$/.test(last.number)?String(Number(last.number)+1):'';
+  $('#lastDraw').textContent=`№${Number(last.number)} · ${fmtAt(last.at)}`;
+  $('#lastBalls').innerHTML=ballsHtml(last.combo)+`<span class="ball-sum">Σ ${last.sum}</span>`;
+  $('#nextDraw').textContent=`№${nextNo} · ${fmtAt(target)}`;
+  const fixed=current&&current.targetAt===target&&current.fixedAt&&current.picks;
+  $('#fixedNote').textContent=fixed?`🔒 Ставка зафиксирована ${new Date(current.fixedAt).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'})}`:'⏳ Ставка зафиксируется перед тиражом';
+  $('#betTarget').textContent=`№${nextNo} · ${target.slice(11,16)}`;
+  const f=(current?.picks&&current.targetAt===target)?current:calculateForecast(facts,target);
+  $('#sumsOften').innerHTML=sumChips(f.picks.often.sums);
+  $('#sumsValue').innerHTML=sumChips(f.picks.value.sums);
+  $('#chOften').textContent='шанс '+pct(chanceOf(f.picks.often.sums));
+  $('#chValue').textContent='шанс '+pct(chanceOf(f.picks.value.sums));
+  const cc=comboChance(rules)[COMBO_PICK.key]||0;
+  $('#comboPick').textContent=COMBO_PICK.label;
+  $('#chCombo').textContent='шанс '+pct(cc);
+  $('#comboNote').textContent=`Например 2-2-5-5-6-6. Выплата ${rub(rules?.combinationPayouts?.[COMBO_PICK.key])} — самая выгодная категория, в 3 раза выгоднее любой другой.`;
+  renderScore();
+  renderLast();
 }
 
-function strongSignal(){
-  if(!forecast) return 'Ожидается новый frozen';
-
-  const map=new Map();
-  const add=(label,vals)=>{for(const v of vals||[]){if(!map.has(v))map.set(v,[]);map.get(v).push(label)}};
-
-  add('В1',forecast.v1);
-  add('В2',forecast.v2);
-  add('В3',forecast.v3);
-  add('Доп. статистика',forecast.stats?.signal);
-
-  for(const [name,v] of Object.entries(forecast.repeats||{})){
-    if(v!=null) add(name,[v]);
+function renderScore(){
+  const pool=scoreN?facts.slice(-scoreN):facts;
+  const f=calculateForecast(facts,'');
+  const acc={often:[0,0],value:[0,0],combo:[0,0]};
+  for(const x of pool){
+    const ev=evaluateForecast(f,x,rules);
+    for(const k of ['often','value','combo']){if(ev[k].hit){acc[k][0]++;acc[k][1]+=ev[k].payout}}
   }
-
-  const rows=[...map.entries()].sort((a,b)=>b[1].length-a[1].length||a[0]-b[0]);
-  return rows.length&&rows[0][1].length>=2
-    ? `${rows[0][0]} = ${rows[0][1].join(' + ')}`
-    : 'Нет объединённого сигнала';
+  const n=pool.length;
+  const row=(label,sub,a,expect)=>`<div class="score-row"><div><b>${label}</b><div class="small">${sub}</div></div><div class="score-num"><b>${a[0]}</b> из ${n}<div class="small">${pct(n?a[0]/n:0)} · ожидается ${pct(expect)}</div></div><div class="score-pay">${rub(a[1])}<div class="small">выплаты</div></div></div>`;
+  $('#score').innerHTML=
+    row('Чаще попадать',PICKS.often.sums.join(' · '),acc.often,chanceOf(PICKS.often.sums))+
+    row('Выгоднее',PICKS.value.sums.join(' · '),acc.value,chanceOf(PICKS.value.sums))+
+    row('Комбинация',COMBO_PICK.label,acc.combo,comboChance(rules)[COMBO_PICK.key]||0);
 }
 
-function renderEngine(){
-  if(!forecast) return;
+function renderLast(){
+  const f=calculateForecast(facts,'');
+  $('#lastRows').innerHTML=facts.slice(-12).reverse().map(x=>{
+    const ev=evaluateForecast(f,x,rules);
+    return `<div class="last-row"><span>${Number(x.number)}<small>${x.at.slice(11,16)}</small></span><span class="mini-balls">${x.combo.join(' ')}</span><span class="last-sum">${x.sum}</span><span>${mark(ev.often.hit)}</span><span>${mark(ev.value.hit)}</span><span>${mark(ev.combo.hit)}</span></div>`;
+  }).join('');
+}
 
-  $('#chains').innerHTML=
-    `<div class="card"><div class="k">📍 Вертикальная цепочка</div><div class="chain">${(forecast.verticalChain||[]).join('→')}</div></div>
-     <div class="card"><div class="k">➡️ Горизонтальная цепочка</div><div class="chain">${(forecast.horizontalChain||[]).join('→')}</div></div>`;
-
-  $('#methods').innerHTML=Object.entries(forecast.methods||{}).map(([name,r])=>
-    `<div class="method"><b>${name}</b> · первое совпадение: <b>${r.level?`${r.level}/${r.level}`:'БЕЗ ПРОДОЛЖЕНИЯ'}</b>
-       <div class="chain">${(r.chain||[]).join('→')}</div>
-       <div class="small">Все продолжения: ${(r.matches||[]).map(x=>x.value).join(' / ')||'нет'}</div>
-     </div>`).join('');
-
-  $('#variantTable').innerHTML=(forecast.variantRows||[]).map(r=>
-    `<tr><td>${r.value}</td><td>${r.coverage}</td><td>${r.frequency}</td><td>${fmtAt(r.oldest)}</td></tr>`).join('');
-
-  $('#repeatGrid').innerHTML=Object.entries(forecast.repeats||{}).map(([k,v])=>`<span class="chip">${k}: ${v??'—'}</span>`).join('');
-
-  $('#comboPositionsDetail').innerHTML=forecast.combo?.complete
-    ? forecast.combo.positions.map(p=>`<div class="method"><b>${p.position}-я позиция</b> · ${p.level}/${p.level} → <b class="hot">${p.value}</b><div class="small">Самое свежее историческое продолжение: ${fmtAt(p.at)}</div></div>`).join('')
-    : `<div class="miss">${forecast.combo?.reason||'Нет полного Combo-прогноза'}</div>`;
+async function renderResults(){
+  const host=$('#resultsList');
+  try{
+    if(!historyCache) historyCache=await fetch('./data/forecast-history.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():[]);
+  }catch{historyCache=[]}
+  const items=[...historyCache].sort((a,b)=>String(b.targetAt).localeCompare(String(a.targetAt))).slice(0,60);
+  if(!items.length){host.innerHTML='<div class="card small">Пока нет зафиксированных прогнозов.</div>';return}
+  host.innerHTML=items.map(e=>{
+    const fc=e.forecast||{};
+    const actual=e.actual;
+    const ev=actual?evaluateForecast(fc,actual,rules):null;
+    const isNew=Boolean(fc.picks);
+    const head=`<div class="res-head"><b>${fmtAt(e.targetAt)}</b>${actual?`<span class="res-fact">Σ ${actual.sum}</span>`:'<span class="wait">⏳ ждём тираж</span>'}</div>`;
+    const lines=isNew
+      ?`<div class="res-line"><span>Чаще</span><span>${sumChips(fc.picks.often.sums,actual?.sum)}</span><span>${ev?(ev.often.hit?'<b class="ok">попал · '+rub(ev.often.payout)+'</b>':'<span class="no">мимо</span>'):''}</span></div>
+         <div class="res-line"><span>Выгоднее</span><span>${sumChips(fc.picks.value.sums,actual?.sum)}</span><span>${ev?(ev.value.hit?'<b class="ok">попал · '+rub(ev.value.payout)+'</b>':'<span class="no">мимо</span>'):''}</span></div>
+         <div class="res-line"><span>Комб.</span><span class="small">${esc(fc.comboPick?.label||'')}</span><span>${ev?(ev.combo.hit?'<b class="ok">попал · '+rub(ev.combo.payout)+'</b>':'<span class="no">мимо</span>'):''}</span></div>`
+      :`<div class="res-line"><span>Старый движок</span><span>${sumChips(ev?.often.sums||fc.final||[],actual?.sum)}</span><span>${ev?(ev.often.hit?'<b class="ok">попал</b>':'<span class="no">мимо</span>'):''}</span></div>`;
+    return `<div class="card res">${head}${actual?`<div class="balls">${ballsHtml(actual.combo)}</div>`:''}${lines}</div>`;
+  }).join('');
 }
 
 function renderRules(){
-  const sums=[[6,36],[7,35],[8,34],[9,33],[10,32],[11,31],[12,30],[13,29],[14,28],[15,27],[16,26],[17,25],[18,24],[19,23],[20,21,22]];
-  $('#sumRules').innerHTML=sums.map(a=>`<tr><td>${a.join(' или ')}</td><td>${rub(rules.sumPayouts?.[String(a[0])])}</td></tr>`).join('');
-
-  const combos=[
-    ['Все единицы / двойки / … / шестёрки',1400000],['Шесть одинаковых',700000],['Пять одинаковых',49000],
-    ['3 числа × 2',17500],['Все шесть чисел',10500],['Только чётные / нечётные',10500],
-    ['Числа 1,2,3 / 4,5,6',10500],['2 числа × 3',4900],['Четыре одинаковых',4200]
-  ];
-  $('#comboRules').innerHTML=combos.map(([n,p])=>`<tr><td>${n}</td><td>${rub(p)}</td></tr>`).join('');
-
-  $('#positionRules').innerHTML=[6,5,4,3,2].map(n=>`<tr><td>${n} совпадений</td><td>${rub(rules.positionPayouts?.[String(n)])}</td></tr>`).join('');
+  const sums=Object.keys(rules.sumPayouts||{}).map(Number).sort((a,b)=>a-b);
+  const best=new Set([...PICKS.often.sums,...PICKS.value.sums]);
+  $('#sumRules').innerHTML=sums.map(s=>`<tr class="${best.has(s)?'pick-row':''}"><td>${s}</td><td>${pct(SUM_CHANCE[s]||0)}</td><td>${rub(rules.sumPayouts[s])}</td></tr>`).join('');
+  const labels={ALL_1:'Все единицы',ALL_2:'Все двойки',ALL_3:'Все тройки',ALL_4:'Все четвёрки',ALL_5:'Все пятёрки',ALL_6:'Все шестёрки',SIX_SAME:'Шесть одинаковых',FIVE_SAME:'Пять одинаковых',THREE_NUMBERS_X2:'3 числа × 2 раза',ALL_SIX_NUMBERS:'Все шесть чисел',ONLY_EVEN:'Только чётные',ONLY_ODD:'Только нечётные',ONLY_1_2_3:'Только 1, 2, 3',ONLY_4_5_6:'Только 4, 5, 6',TWO_NUMBERS_X3:'2 числа × 3 раза',FOUR_SAME:'Четыре одинаковых'};
+  const ch=comboChance(rules);
+  $('#comboRules').innerHTML=Object.entries(rules.combinationPayouts||{}).sort((a,b)=>b[1]*(ch[b[0]]||0)-a[1]*(ch[a[0]]||0)).map(([k,p])=>`<tr class="${k===COMBO_PICK.key?'pick-row':''}"><td>${labels[k]||k}</td><td>${pct(ch[k]||0)}</td><td>${rub(p)}</td></tr>`).join('');
+  $('#positionRules').innerHTML=Object.entries(rules.positionPayouts||{}).sort((a,b)=>Number(b[0])-Number(a[0])).map(([k,p])=>`<tr><td>${k}</td><td>${pct(posChance(Number(k)))}</td><td>${rub(p)}</td></tr>`).join('');
 }
 
 function renderArchive(){
-  if(!facts.length) return;
-  $('#archiveInfo').textContent=`Встроено ${facts.length} фактических тиражей. Первый: ${fmtAt(facts[0].at)}. Последний: ${fmtAt(facts.at(-1).at)}.`;
-  $('#archiveRows').innerHTML=facts.slice(-30).reverse().map(f=>`<tr><td>${f.number}</td><td>${fmtAt(f.at)}</td><td>${f.combo.join('-')}</td><td>${f.sum}</td></tr>`).join('');
-}
-
-function showResult(f){
-  if(!forecast) return;
-
-  const ev=evaluateForecast(forecast,f,rules);
-  const audit=[
-    ['В1',picks(forecast.v1),ev.v1Hit],
-    ['В2',picks(forecast.v2),ev.v2Hit],
-    ['В3',picks(forecast.v3),ev.v3Hit],
-    ['Combo→Σ',forecast.combo?.complete?forecast.combo.sum:'—',ev.comboHit],
-    ['Доп. статистика',picks(forecast.stats?.signal),ev.statsHit]
-  ];
-
-  const bestCombo=ev.combinationCategories.length?Math.max(...ev.combinationCategories.map(c=>c.payout)):0;
-
-  $('#resultContent').innerHTML=
-    `<div class="card result-head"><div class="dice">🎲</div><div><div class="k">Факт</div><div class="fact">${f.combo.join('-')} = <span class="hot">${ev.actualSum}</span></div><div class="hot">${fmtAt(f.at)}</div></div></div>
-     <div class="card"><div class="sec-title">Сводка проверки</div>
-       ${audit.map(([n,p,h])=>`<div class="audit-row"><b>${n}</b><span>${p} — <b class="${h?'hit':'miss'}">${h?'ПОПАДАНИЕ':'мимо'}</b></span></div>`).join('')}
-       <div class="small" style="margin-top:10px">Сырые методы: ${ev.rawHits.join(', ')||'нет'}</div>
-     </div>
-     <div class="sec-title">Проверка игровых направлений</div>
-     <div class="card direction-result"><div class="dice">🎲</div><div><h2>Сумма</h2><div>Совпала сумма ${ev.actualSum}</div></div><div class="money">${rub(ev.sumPayout)}</div></div>
-     <div class="card direction-result"><div class="dice">🎲🎲</div><div><h2>Комбинация</h2><div>${ev.combinationCategories.length?ev.combinationCategories.map(c=>c.label).join(', '):'Нет категории из таблицы'}</div></div><div class="money">${rub(bestCombo)}</div></div>
-     <div class="card direction-result"><div class="dice">🎲</div><div><h2>Позиции</h2><div>Совпало ${ev.posMatches}</div></div><div class="money">${rub(ev.positionPayout)}</div></div>
-     <div class="card notice"><div class="ico">⚠️</div><div>Суперприз по номеру билета <b class="hot">не учитывается</b>.</div></div>`;
-
-  switchPage('result');
+  $('#archiveInfo').textContent=`Всего ${nf.format(facts.length)} тиражей`;
+  $('#archiveRows').innerHTML=facts.slice(-50).reverse().map(x=>`<tr><td>${Number(x.number)}</td><td>${fmtAt(x.at)}</td><td>${x.combo.join('-')}</td><td>${x.sum}</td></tr>`).join('');
 }
 
 function switchPage(id){
   $$('.page').forEach(p=>p.classList.toggle('active',p.id===id));
   $$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
-  window.scrollTo({top:0,behavior:'smooth'});
-
-  // Ключевое исправление: при каждом открытии "Прогноз" сразу читаем свежий frozen.
-  if(id==='forecast') syncForecast();
+  if(id==='results') renderResults();
+  window.scrollTo({top:0});
 }
-
 $$('.nav button').forEach(b=>b.addEventListener('click',()=>switchPage(b.dataset.page)));
-$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchPage(b.dataset.go)));
-
-$('#demoFact')?.addEventListener('click',()=>{
-  if(!forecast){
-    alert('Новый прогноз ещё синхронизируется.');
-    return;
-  }
-
-  const raw=prompt('Введите 6 чисел факта, например 4-4-6-2-6-2');
-  if(!raw) return;
-
-  const combo=raw.split(/[-,\s]+/).filter(Boolean).map(Number);
-  if(combo.length!==6||combo.some(x=>!Number.isInteger(x)||x<1||x>6)){
-    alert('Нужно ровно 6 чисел от 1 до 6');
-    return;
-  }
-
-  showResult({at:forecast.targetAt,combo,sum:combo.reduce((a,b)=>a+b,0)});
+$('#scoreSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-n]');if(!b) return;
+  scoreN=Number(b.dataset.n);
+  $$('#scoreSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  renderScore();
 });
 
-// Пока вкладка "Прогноз" открыта — автоматически сверяемся с сервером.
-// Это не рассчитывает прогноз в браузере, а только читает уже frozen JSON.
-setInterval(()=>{
-  if($('#forecast')?.classList.contains('active')) syncForecast();
-},15000);
-
-// После возврата в приложение с фона также сразу забираем свежий прогноз.
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible' && ($('#forecast')?.classList.contains('active') || $('#home')?.classList.contains('active'))){
-    syncForecast();
+async function sync(first=false){
+  try{
+    const d=await load();
+    const key=(d.facts.at(-1)?.at||'')+'|'+(d.current?.fixedAt||'');
+    facts=d.facts;rules=d.rules;current=d.current;
+    if(key===lastKey&&!first) return;
+    lastKey=key;historyCache=null;
+    renderHome();renderRules();renderArchive();
+    if($('#results').classList.contains('active')) renderResults();
+  }catch(err){
+    console.error(err);
+    if(first) document.querySelector('main').innerHTML=`<div class="card"><b>Не удалось загрузить данные</b><div class="small">${esc(err.message)}</div></div>`;
   }
-});
-
-boot().catch(err=>{
-  document.body.innerHTML=`<div style="padding:30px;color:white;background:#220709;min-height:100vh"><h1>Ошибка загрузки</h1><pre>${String(err.stack||err)}</pre></div>`;
-});
-
+}
+sync(true);
+setInterval(()=>sync(),60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) sync()});
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});

@@ -2,9 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-// Сколько последних проверенных прогнозов хранить полностью.
-// Движку для global30 / globalMissStreak нужны последние 30 записей.
-export const KEEP_FULL = 30;
+// Сколько последних проверенных прогнозов хранить полностью (движку подробности не нужны).
+export const KEEP_FULL = 0;
 
 const pick = (obj, keys) => {
   const out = {};
@@ -16,11 +15,8 @@ const pick = (obj, keys) => {
 export function compactEntry(entry) {
   if (!entry || entry.compact) return entry;
   const f = entry.forecast || {};
-  const forecast = pick(f, ['targetAt', 'fixedAt', 'modelVersion', 'final', 'v1', 'v2', 'v3']);
+  const forecast = pick(f, ['targetAt', 'fixedAt', 'modelVersion', 'picks', 'comboPick', 'final', 'v1', 'v2', 'v3']);
   if (f.combo) forecast.combo = pick(f.combo, ['complete', 'combo', 'sum']);
-  if (f.stats?.signal) forecast.stats = {signal: f.stats.signal};
-  const global = f.families?.GLOBAL?.candidates;
-  if (Array.isArray(global)) forecast.families = {GLOBAL: {candidates: global}};
   const out = {
     ...pick(entry, ['targetAt', 'fixedAt', 'checked', 'checkedAt', 'actual']),
     forecast,
@@ -30,7 +26,8 @@ export function compactEntry(entry) {
     out.result = pick(entry.result, [
       'mainStatus', 'actualSum', 'finalHit', 'position',
       'v1Hit', 'v2Hit', 'v3Hit', 'comboHit', 'statsHit',
-      'positionMatches', 'classification'
+      'positionMatches', 'classification',
+      'oftenHit', 'valueHit', 'oftenPayout', 'valuePayout', 'comboPayout'
     ]);
   }
   return out;
