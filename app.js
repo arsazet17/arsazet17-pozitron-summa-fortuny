@@ -1,4 +1,5 @@
 import {parseLuckyCsv,nextScheduledAfter,evaluateForecast,combinationCategories,calculateForecast,SUM_CHANCE,chanceOf,PICKS,COMBO_PICK} from './engine.js';
+import {renderNavigation} from './navigation.js';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const nf=new Intl.NumberFormat('ru-RU');
@@ -57,6 +58,7 @@ function renderHome(){
   $('#comboNote').textContent=`4, 5 или 6 одинаковых чисел, например 6-1-6-1-6-6. Выплата ${rub(rules?.combinationPayouts?.[COMBO_PICK.key])}. Лучший возврат среди комбинаций.`;
   renderScore();
   renderLast();
+  renderNavigation($('#navCard'),facts);
 }
 
 const ticket=()=>Number(rules?.ticketPrice||550);

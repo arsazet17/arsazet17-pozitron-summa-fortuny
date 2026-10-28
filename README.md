@@ -1,4 +1,4 @@
-# Сумма Фортуны — Позитрон v2.1.0
+# Сумма Фортуны — Позитрон v2.2.0
 
 PWA для GitHub Pages. Расчёт выполняется в GitHub Actions (`Fortune Auto Update`), браузер только показывает уже зафиксированный `data/current-forecast.json`.
 
