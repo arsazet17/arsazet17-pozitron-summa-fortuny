@@ -15,7 +15,7 @@ const pick = (obj, keys) => {
 export function compactEntry(entry) {
   if (!entry || entry.compact) return entry;
   const f = entry.forecast || {};
-  const forecast = pick(f, ['targetAt', 'fixedAt', 'modelVersion', 'picks', 'comboPick', 'final', 'v1', 'v2', 'v3']);
+  const forecast = pick(f, ['targetAt', 'fixedAt', 'modelVersion', 'picks', 'comboPick', 'exitWarn', 'final', 'v1', 'v2', 'v3']);
   if (f.combo) forecast.combo = pick(f.combo, ['complete', 'combo', 'sum']);
   const out = {
     ...pick(entry, ['targetAt', 'fixedAt', 'checked', 'checkedAt', 'actual']),
@@ -27,7 +27,8 @@ export function compactEntry(entry) {
       'mainStatus', 'actualSum', 'finalHit', 'position',
       'v1Hit', 'v2Hit', 'v3Hit', 'comboHit', 'statsHit',
       'positionMatches', 'classification',
-      'oftenHit', 'valueHit', 'oftenPayout', 'valuePayout', 'comboPayout'
+      'oftenHit', 'valueHit', 'oftenPayout', 'valuePayout', 'comboPayout',
+      'exitWarnOn', 'exitHit', 'exitOut'
     ]);
   }
   return out;

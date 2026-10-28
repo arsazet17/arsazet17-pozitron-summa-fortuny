@@ -8,6 +8,7 @@ import {
   evaluateForecast,
   MODEL_VERSION
 } from '../engine.js';
+import {computeExitWarning,exitOutcome} from '../exit-signal.mjs';
 
 const ROOT = path.resolve(process.argv[2] || process.cwd());
 const DATA = path.join(ROOT, 'data');
@@ -145,6 +146,8 @@ for (const entry of history) {
     valuePayout: ev.value.payout,
     comboPayout: ev.combo.payout
   };
+  const ex = exitOutcome(entry.forecast?.exitWarn, ev.actualSum);
+  if (ex) { entry.result.exitWarnOn = true; entry.result.exitHit = ex.hit; entry.result.exitOut = ex.left; }
   ledgerByAt.set(entry.targetAt, {
     at: entry.targetAt,
     status: ev.often.hit ? 'H' : 'M',
@@ -186,6 +189,20 @@ if (!current || current.targetAt !== targetAt) {
     const forecast = calculateForecast(facts, targetAt);
     forecast.fixedAt = now.toISOString();
     forecast.locked = true;
+    try {
+      const warn = computeExitWarning(facts, targetAt);
+      // живой счёт: только сигналы, зафиксированные до тиража
+      const lit = history.filter(e => e?.checked && e.forecast?.exitWarn?.on && e.actual);
+      warn.score = {
+        n: lit.length,
+        hit: lit.filter(e => (e.forecast.exitWarn.sums || []).includes(e.actual.sum)).length,
+        out: lit.filter(e => !(e.actual.sum >= 19 && e.actual.sum <= 23)).length
+      };
+      forecast.exitWarn = warn;
+      if (warn.on) console.log(`EXIT_WARN ${targetAt} · ${warn.side === 'left' ? 'влево' : 'вправо'} ${warn.sums.join('·')} · p=${warn.p} порог ${warn.threshold}`);
+    } catch (err) {
+      console.log(`EXIT_WARN_ERROR ${err.message}`);
+    }
     current = forecast;
     history.push({targetAt, fixedAt: forecast.fixedAt, checked: false, forecast});
     console.log(`FORECAST_FIXED ${targetAt} · Чаще ${forecast.picks.often.sums.join('/')} · Выгоднее ${forecast.picks.value.sums.join('/')} · Комбинация ${forecast.comboPick.label}`);

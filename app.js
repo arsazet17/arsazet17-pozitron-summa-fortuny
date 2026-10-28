@@ -58,7 +58,9 @@ function renderHome(){
   $('#comboNote').textContent=`4, 5 или 6 одинаковых чисел, например 6-1-6-1-6-6. Выплата ${rub(rules?.combinationPayouts?.[COMBO_PICK.key])}. Лучший возврат среди комбинаций.`;
   renderScore();
   renderLast();
-  renderNavigation($('#navCard'),facts);
+  const warn=(current&&current.targetAt===target)?current.exitWarn:null;
+  renderNavigation($('#navCard'),facts,warn);
+  const wn=$('#warnNote');if(wn){wn.hidden=!warn?.on;wn.innerHTML=warn?.on?`⚠️ Возможен уход ${warn.side==='left'?'влево':'вправо'} — <b>${warn.sums.join(' · ')}</b>. Подробнее в навигации ниже.`:''}
 }
 
 const ticket=()=>Number(rules?.ticketPrice||550);
@@ -108,8 +110,13 @@ async function renderResults(){
       const hits=isNew?[ev.often.hit,ev.value.hit,ev.combo.hit].filter(Boolean).length:(ev.often.hit?1:0);
       status=hits?`<span class="ok res-badge">✓ ${isNew?'попал '+hits+' из 3':'попал'}</span>`:'<span class="no res-badge">мимо</span>';
     }
-    const head=`<div class="res-head"><div><b>${fmtAt(e.targetAt)}</b>${no?`<small> №${no}</small>`:''}</div><div class="res-right">${actual?`<span class="res-fact">Σ ${actual.sum}</span>`:''}${status}<span class="chev">▾</span></div></div>`;
+    const head=`<div class="res-head"><div><b>${fmtAt(e.targetAt)}</b>${no?`<small> №${no}</small>`:''}</div><div class="res-right">${fc.exitWarn?.on?'<span class="res-warn" title="Был сигнал ухода">⚠️</span>':''}${actual?`<span class="res-fact">Σ ${actual.sum}</span>`:''}${status}<span class="chev">▾</span></div></div>`;
     const cats=ev?.combinationCategories||[];
+    const w=fc.exitWarn;let warnLine='';
+    if(w?.on){const side=w.side==='left'?'влево':'вправо';const sums=(w.sums||[]).join('·');
+      if(!actual) warnLine=`<div class="res-line warn-line"><span>⚠️ Уход</span><span>${side} ${sums}</span><span class="wait">ждём</span></div>`;
+      else{const hit=(w.sums||[]).includes(actual.sum),out=!(actual.sum>=19&&actual.sum<=23);
+        warnLine=`<div class="res-line warn-line"><span>⚠️ Уход</span><span>${side} ${sums}</span><span>${hit?`<b class="ok">выпало ${actual.sum} ✓</b>`:`<span class="no">выпало ${actual.sum} ✗ · ${out?(actual.sum<19?'ушёл влево':'ушёл вправо'):'остался в центре'}</span>`}</span></div>`}}
     const extra=actual?`<div class="res-extra">
         <div>Выплата за сумму Σ ${actual.sum}: <b>${rub(ev.sumPayout)}</b> · шанс ${pct(SUM_CHANCE[actual.sum]||0)}</div>
         <div>Комбинация тиража: ${cats.length?cats.map(c=>`<b>${esc(c.label)}</b> (${rub(c.payout)})`).join(', '):'<span class="no">ни одна категория не выпала</span>'}</div>
@@ -121,7 +128,7 @@ async function renderResults(){
          <div class="res-line"><span>Комб.</span><span class="small">${esc(fc.comboPick?.label||'')}</span><span>${ev?(ev.combo.hit?'<b class="ok">попал · '+rub(ev.combo.payout)+'</b>':'<span class="no">мимо</span>'):''}</span></div>`
       :`<div class="res-line"><span>Старый движок</span><span>${sumChips(ev?.often.sums||fc.final||[],actual?.sum)}</span><span>${ev?(ev.often.hit?'<b class="ok">попал</b>':'<span class="no">мимо</span>'):''}</span></div>`;
     const open=openResults.has(e.targetAt);
-    return `<div class="card res${open?' open':''}" data-at="${esc(e.targetAt)}">${head}<div class="res-body">${actual?`<div class="balls">${ballsHtml(actual.combo)}</div>`:''}${lines}${extra}</div></div>`;
+    return `<div class="card res${open?' open':''}" data-at="${esc(e.targetAt)}">${head}<div class="res-body">${actual?`<div class="balls">${ballsHtml(actual.combo)}</div>`:''}${lines}${warnLine}${extra}</div></div>`;
   }).join('');
 }
 const openResults=new Set();

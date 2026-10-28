@@ -52,12 +52,19 @@ export function navigation(facts){
   };
 }
 
-export function renderNavigation(el,facts){
+export function renderNavigation(el,facts,warn){
   if(!el) return;
   const n=navigation(facts);
   if(!n){el.innerHTML='';el.className='nav-off';return}
   const st=n.now,w=n.wave,last=w.at(-1),prev=w.at(-2);
   const sig=[];
+  if(warn?.on){const sc=warn.score||{n:0,hit:0,out:0};const side=warn.side==='left'?'влево':'вправо';
+    sig.push(`<div class="nav-sig warn">
+      <div class="nav-title">⚠️ Возможен уход из центра — ${side}</div>
+      <div>Последние тиражи: ${w.slice(-5).map(x=>esc(x.sum)).join(' → ')}</div>
+      <div>Скорее выпадет: <b class="warn-sums">${warn.sums.join(' · ')}</b></div>
+      <div class="small">Сигнал на проверке: ${sc.n?`выпали эти числа <b>${sc.hit} из ${sc.n}</b>, уход из центра был ${sc.out} из ${sc.n}`:'считаем с 28.10, проверок пока нет'}.</div>
+    </div>`)}
   if(st.ret) sig.push(`<div class="nav-sig lit">
       <div class="nav-title">🧭 Возможен возврат в центр</div>
       <div>Серия <b>${st.retRun}</b> тиражей в центре закончилась выходом на <b>${esc(last.sum)}</b>.</div>
@@ -69,6 +76,6 @@ export function renderNavigation(el,facts){
       <div>После такого 3 тиража подряд в <b style="white-space:nowrap">19–23</b> шли в <b>${pct(n.ctr.calmN?n.ctr.calm/n.ctr.calmN:0)}</b> случаев (обычно ${pct(n.baseCalm)}).</div>
     </div>`);
   if(!sig.length){el.className='nav-off';el.innerHTML='🧭 Сигнала нет';return}
-  el.className='card nav-card';
+  el.className='card nav-card'+(warn?.on?' nav-warn':'');
   el.innerHTML=sig.join('');
 }
