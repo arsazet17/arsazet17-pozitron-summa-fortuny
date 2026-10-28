@@ -39,6 +39,7 @@ try{
   fs.copyFileSync('scripts/fortune-cycle.mjs',path.join(dir,'scripts/fortune-cycle.mjs'));
   fs.copyFileSync('scripts/history-compact.mjs',path.join(dir,'scripts/history-compact.mjs'));
   fs.copyFileSync('exit-signal.mjs',path.join(dir,'exit-signal.mjs'));
+  fs.copyFileSync('positions.mjs',path.join(dir,'positions.mjs'));
   const write=(name,value)=>fs.writeFileSync(path.join(dir,'data',name),JSON.stringify(value));
   fs.writeFileSync(path.join(dir,'data/fortune-archive.csv'),'Номер тиража,Дата,Шары\n012512,26.09.26, 11:37,1,+,2,+,3,+,4,+,5,+,6\n');
   const fixed=calculateForecast([], '2026-09-26T11:52');fixed.fixedAt='2026-09-26T08:40:00Z';
@@ -61,6 +62,7 @@ try{
   const cur=read('current-forecast.json');
   assert.equal(cur.exitWarn?.on,false,'сигнал ухода посчитан (мало данных — не горит)');
   assert.equal(cur.exitWarn?.score?.n,0);
+  assert.equal(cur.positionsPick?.dice?.length,6,'кубики на 6 ходов зафиксированы');
   const led=read('forecast-ledger.json');
   assert.equal(led.algorithmTracking,undefined,'тяжёлое слежение удалено');
   assert.ok(led.recent.some(x=>x.at==='2026-09-26T11:52'&&x.status==='H'&&x.valueHit===true));

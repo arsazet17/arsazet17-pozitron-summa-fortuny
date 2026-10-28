@@ -1,10 +1,10 @@
 name: Fortune audit regression
 on:
   pull_request:
-    paths: ['engine.js', 'scripts/fortune-cycle.mjs', 'scripts/history-compact.mjs', 'exit-signal.mjs', 'tests/fortune-audit.mjs', '.github/workflows/fortune-audit-test.yml']
+    paths: ['engine.js', 'scripts/fortune-cycle.mjs', 'scripts/history-compact.mjs', 'exit-signal.mjs', 'positions.mjs', 'tests/fortune-audit.mjs', '.github/workflows/fortune-audit-test.yml']
   push:
     branches: [main, codex/fix-fortune-audit-update]
-    paths: ['engine.js', 'scripts/fortune-cycle.mjs', 'scripts/history-compact.mjs', 'exit-signal.mjs', 'tests/fortune-audit.mjs', '.github/workflows/fortune-audit-test.yml']
+    paths: ['engine.js', 'scripts/fortune-cycle.mjs', 'scripts/history-compact.mjs', 'exit-signal.mjs', 'positions.mjs', 'tests/fortune-audit.mjs', '.github/workflows/fortune-audit-test.yml']
 permissions:
   contents: read
 jobs:

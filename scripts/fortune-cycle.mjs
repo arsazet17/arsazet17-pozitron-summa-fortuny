@@ -9,6 +9,7 @@ import {
   MODEL_VERSION
 } from '../engine.js';
 import {computeExitWarning,exitOutcome} from '../exit-signal.mjs';
+import {computePositionsPick,positionMatches,positionPay} from '../positions.mjs';
 
 const ROOT = path.resolve(process.argv[2] || process.cwd());
 const DATA = path.join(ROOT, 'data');
@@ -148,6 +149,10 @@ for (const entry of history) {
   };
   const ex = exitOutcome(entry.forecast?.exitWarn, ev.actualSum);
   if (ex) { entry.result.exitWarnOn = true; entry.result.exitHit = ex.hit; entry.result.exitOut = ex.left; }
+  if (entry.forecast?.positionsPick?.dice) {
+    const pm = positionMatches(entry.forecast.positionsPick.dice, actual.combo);
+    entry.result.posMatches = pm; entry.result.posPayout = positionPay(pm, rules);
+  }
   ledgerByAt.set(entry.targetAt, {
     at: entry.targetAt,
     status: ev.often.hit ? 'H' : 'M',
@@ -189,6 +194,12 @@ if (!current || current.targetAt !== targetAt) {
     const forecast = calculateForecast(facts, targetAt);
     forecast.fixedAt = now.toISOString();
     forecast.locked = true;
+    try {
+      forecast.positionsPick = computePositionsPick(facts, targetAt);
+      console.log(`POSITIONS ${targetAt} · ${forecast.positionsPick.dice.join('-')}`);
+    } catch (err) {
+      console.log(`POSITIONS_ERROR ${err.message}`);
+    }
     try {
       const warn = computeExitWarning(facts, targetAt);
       // живой счёт: только сигналы, зафиксированные до тиража

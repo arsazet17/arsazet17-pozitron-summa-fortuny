@@ -1,5 +1,6 @@
 import {parseLuckyCsv,nextScheduledAfter,evaluateForecast,combinationCategories,calculateForecast,SUM_CHANCE,chanceOf,PICKS,COMBO_PICK} from './engine.js';
 import {renderNavigation} from './navigation.js';
+import {computePositionsPick,positionsBacktest,positionMatches,positionPay} from './positions.mjs';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const nf=new Intl.NumberFormat('ru-RU');
@@ -51,6 +52,8 @@ function renderHome(){
   $('#comboPick').textContent=COMBO_PICK.label;
   $('#chCombo').textContent='шанс '+pct(cc);
   const T=ticket();
+  const pp=(current?.positionsPick&&current.targetAt===target)?current.positionsPick:computePositionsPick(facts,target);
+  $('#posDice').innerHTML=diceHtml(pp.dice);
   $('#retOften').innerHTML=retLine(f.picks.often.sums.length*T,setReturn(f.picks.often.sums));
   $('#retValue').innerHTML=retLine(f.picks.value.sums.length*T,setReturn(f.picks.value.sums));
   $('#retCombo').innerHTML=retLine(T,cc*(rules?.combinationPayouts?.[COMBO_PICK.key]||0));
@@ -66,6 +69,9 @@ function renderHome(){
 const ticket=()=>Number(rules?.ticketPrice||550);
 const setReturn=sums=>sums.reduce((a,x)=>a+(SUM_CHANCE[x]||0)*Number(rules?.sumPayouts?.[x]||0),0);
 const retLine=(cost,back)=>`Ставка ${rub(cost)} → в среднем возвращается <b>${rub(back)}</b> (${Math.round(cost?back/cost*100:0)}%)`;
+const diceHtml=(dice,actual)=>(dice||[]).map((v,i)=>`<span class="die${actual?(Number(actual[i])===Number(v)?' hit':' miss'):''}"><small>${i+1}</small>${v}</span>`).join('');
+let btCache={len:0,rows:[]};
+const posBacktest=()=>{if(btCache.len!==facts.length)btCache={len:facts.length,rows:positionsBacktest(facts,rules)};return btCache.rows};
 function renderScore(){
   const pool=scoreN?facts.slice(-scoreN):facts;
   const f=calculateForecast(facts,'');
@@ -80,9 +86,14 @@ function renderScore(){
   $('#score').innerHTML=
     row('Чаще попадать',PICKS.often.sums.join(' · '),acc.often,chanceOf(PICKS.often.sums),PICKS.often.sums.length)+
     row('Выгоднее',PICKS.value.sums.join(' · '),acc.value,chanceOf(PICKS.value.sums),PICKS.value.sums.length)+
-    row('Комбинация',COMBO_PICK.label,acc.combo,comboChance(rules)[COMBO_PICK.key]||0,1);
+    row('Комбинация',COMBO_PICK.label,acc.combo,comboChance(rules)[COMBO_PICK.key]||0,1)+posRow();
 }
 
+function posRow(){
+  const all=posBacktest();const rows=scoreN?all.slice(-scoreN):all;const n=rows.length,T=ticket();
+  const h2=rows.filter(r=>r.matches>=2).length,h3=rows.filter(r=>r.matches>=3).length,pay=rows.reduce((a,r)=>a+r.payout,0),cost=n*T,net=pay-cost;
+  return `<div class="score-row"><div><b>🎲 Позиции</b><div class="small">кубики по ходам</div></div><div class="score-num"><b>${h2}</b> из ${n}<div class="small">2+ совпадения ${pct(n?h2/n:0)} · ожидается 26,3% · 3+: ${h3}</div></div><div class="score-pay">${rub(pay)}<div class="small">выплаты</div></div><div class="score-net small">Потрачено ${rub(cost)} · итог <b class="${net>=0?'ok':'hot'}">${net>=0?'+':'−'}${rub(Math.abs(net))}</b>${scoreN?'':' · с 01.08'}</div></div>`;
+}
 function renderLast(){
   const f=calculateForecast(facts,'');
   $('#lastRows').innerHTML=facts.slice(-12).reverse().map(x=>{
@@ -127,8 +138,11 @@ async function renderResults(){
          <div class="res-line"><span>Выгоднее</span><span>${sumChips(fc.picks.value.sums,actual?.sum)}</span><span>${ev?(ev.value.hit?'<b class="ok">попал · '+rub(ev.value.payout)+'</b>':'<span class="no">мимо</span>'):''}</span></div>
          <div class="res-line"><span>Комб.</span><span class="small">${esc(fc.comboPick?.label||'')}</span><span>${ev?(ev.combo.hit?'<b class="ok">попал · '+rub(ev.combo.payout)+'</b>':'<span class="no">мимо</span>'):''}</span></div>`
       :`<div class="res-line"><span>Старый движок</span><span>${sumChips(ev?.often.sums||fc.final||[],actual?.sum)}</span><span>${ev?(ev.often.hit?'<b class="ok">попал</b>':'<span class="no">мимо</span>'):''}</span></div>`;
+    const pk=fc.positionsPick;let posLine='';
+    if(pk?.dice){const pm=actual?positionMatches(pk.dice,actual.combo):null,pay=pm!=null?positionPay(pm,rules):0;
+      posLine=`<div class="res-line pos-line"><span>🎲 Поз.</span><span class="dice-row sm">${diceHtml(pk.dice,actual?.combo)}</span><span>${pm==null?'':pm>=2?`<b class="ok">${pm} совп · ${rub(pay)}</b>`:`<span class="no">${pm} совп</span>`}</span></div>`}
     const open=openResults.has(e.targetAt);
-    return `<div class="card res${open?' open':''}" data-at="${esc(e.targetAt)}">${head}<div class="res-body">${actual?`<div class="balls">${ballsHtml(actual.combo)}</div>`:''}${lines}${warnLine}${extra}</div></div>`;
+    return `<div class="card res${open?' open':''}" data-at="${esc(e.targetAt)}">${head}<div class="res-body">${actual?`<div class="balls">${ballsHtml(actual.combo)}</div>`:''}${lines}${posLine}${warnLine}${extra}</div></div>`;
   }).join('');
 }
 const openResults=new Set();

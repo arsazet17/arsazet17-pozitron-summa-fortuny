@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#240708">
 <title>Сумма Фортуны</title>
-<link rel="manifest" href="./manifest.webmanifest?v=2.3.0">
-<link rel="stylesheet" href="./styles.css?v=2.3.0">
-<link rel="stylesheet" href="./update-app.css?v=2.3.0">
+<link rel="manifest" href="./manifest.webmanifest?v=2.3.1">
+<link rel="stylesheet" href="./styles.css?v=2.3.1">
+<link rel="stylesheet" href="./update-app.css?v=2.3.1">
 </head>
 <body>
 <div class="app">
@@ -15,7 +15,7 @@
   <div>
     <div class="title-row">
       <div class="title">Сумма Фортуны</div>
-      <span class="app-version" id="appVersion">v2.3.0</span>
+      <span class="app-version" id="appVersion">v2.3.1</span>
     </div>
     <div class="sub">Что ставить на следующий тираж</div>
   </div>
@@ -59,9 +59,10 @@
         <div class="small" id="comboNote"></div>
         <div class="ret" id="retCombo"></div>
       </div>
-      <div class="pick muted-pick">
-        <div class="pick-head"><b>Позиции</b></div>
-        <div class="small">У любой комбинации шанс одинаковый, поэтому прогноз позиций не даём.</div>
+      <div class="pick">
+        <div class="pick-head"><b>🎲 Позиции</b><span class="chance">ставка 550 ₽</span></div>
+        <div class="dice-row" id="posDice"></div>
+        <div class="small" id="posNote">Число на каждый ход по порядку. 2 совпадения — 600 ₽, 3 — 1 700 ₽, 4 — 6 000 ₽, 5 — 55 000 ₽.</div>
       </div>
     </div>
   </div>
@@ -117,6 +118,6 @@
 <button data-page="archive"><span class="nicon">☰</span>Архив</button>
 </nav>
 
-<script type="module" src="./app.js?v=2.3.0"></script>
-<script type="module" src="./update-app.js?v=2.3.0"></script>
+<script type="module" src="./app.js?v=2.3.1"></script>
+<script type="module" src="./update-app.js?v=2.3.1"></script>
 </body></html>
