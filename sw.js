@@ -1,14 +1,14 @@
-const C='summa-fortuny-v2.0.1';
+const C='summa-fortuny-v2.1.0';
 
 const STATIC=[
-  './?v=2.0.1',
-  './index.html?v=2.0.1',
-  './styles.css?v=2.0.1',
-  './update-app.css?v=2.0.1',
-  './app.js?v=2.0.1',
-  './update-app.js?v=2.0.1',
-  './engine.js?v=2.0.1',
-  './manifest.webmanifest?v=2.0.1'
+  './?v=2.1.0',
+  './index.html?v=2.1.0',
+  './styles.css?v=2.1.0',
+  './update-app.css?v=2.1.0',
+  './app.js?v=2.1.0',
+  './update-app.js?v=2.1.0',
+  './engine.js?v=2.1.0',
+  './manifest.webmanifest?v=2.1.0'
 ];
 
 self.addEventListener('install',e=>{
@@ -54,8 +54,8 @@ self.addEventListener('fetch',e=>{
         if(hit) return hit;
 
         if(e.request.mode==='navigate'){
-          return caches.match('./index.html?v=2.0.1')
-              || caches.match('./?v=2.0.1');
+          return caches.match('./index.html?v=2.1.0')
+              || caches.match('./?v=2.1.0');
         }
 
         throw new Error('offline and no cache');

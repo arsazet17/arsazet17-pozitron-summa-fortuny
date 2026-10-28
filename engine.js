@@ -5,7 +5,7 @@ export const LAW = Object.freeze({
   sumMax:36
 });
 
-export const MODEL_VERSION='TWO-PICKS-2026-10-28';
+export const MODEL_VERSION='REAL-RULES-2026-10-28';
 
 export function sumCombo(combo){ return combo.reduce((a,x)=>a+Number(x||0),0); }
 const pad=n=>String(n).padStart(2,'0');
@@ -55,9 +55,10 @@ export const SUM_CHANCE=(()=>{
 // Два набора сумм и лучшая категория комбинации — выбраны по вероятности и таблице выплат.
 export const PICKS=Object.freeze({
   often:Object.freeze({key:'often',label:'Чаще попадать',sums:Object.freeze([20,21,22]),hint:'самые частые суммы'}),
-  value:Object.freeze({key:'value',label:'Выгоднее',sums:Object.freeze([19,21,23]),hint:'лучшее соотношение выплаты и шанса'})
+  value:Object.freeze({key:'value',label:'Выгоднее',sums:Object.freeze([19,21,23]),hint:'самый большой возврат среди сумм'})
 });
-export const COMBO_PICK=Object.freeze({key:'THREE_NUMBERS_X2',label:'3 числа × 2 раза',hint:'в 3 раза выгоднее любой другой категории'});
+// Лучшая по возврату категория по настоящим правилам: «Четыре одинаковых» (4, 5 или 6 одинаковых), ×12, шанс 5,2%.
+export const COMBO_PICK=Object.freeze({key:'FOUR_SAME',label:'Четыре одинаковых',hint:'самый большой возврат среди комбинаций'});
 
 export const chanceOf=sums=>(sums||[]).reduce((a,s)=>a+(SUM_CHANCE[s]||0),0);
 
@@ -83,8 +84,10 @@ export function combinationCategories(combo,rules){
   if(vals[0]===6) add('SIX_SAME','Шесть одинаковых');
   if(vals[0]>=5) add('FIVE_SAME','Пять одинаковых');
   if(vals[0]>=4) add('FOUR_SAME','Четыре одинаковых');
-  if(vals.length===3&&vals.every(x=>x===2)) add('THREE_NUMBERS_X2','3 числа × 2 раза');
-  if(vals.length===2&&vals.every(x=>x===3)) add('TWO_NUMBERS_X3','2 числа × 3 раза');
+  // По правилам лотереи: «3 числа × 2» — два числа по три раза (5 1 1 5 5 1),
+  // «2 числа × 3» — три числа по два раза (4 4 6 2 6 2).
+  if(vals.length===2&&vals.every(x=>x===3)) add('THREE_NUMBERS_X2','3 числа × 2');
+  if(vals.length===3&&vals.every(x=>x===2)) add('TWO_NUMBERS_X3','2 числа × 3');
   if(uniq.length===6&&uniq.every((x,i)=>x===i+1)) add('ALL_SIX_NUMBERS','Все шесть чисел');
   if(combo.every(x=>x%2===0)) add('ONLY_EVEN','Только чётные');
   if(combo.every(x=>x%2===1)) add('ONLY_ODD','Только нечётные');

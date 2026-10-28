@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {calculateForecast,evaluateForecast,SUM_CHANCE,chanceOf,PICKS} from '../engine.js';
+import {calculateForecast,evaluateForecast,combinationCategories,SUM_CHANCE,chanceOf,PICKS} from '../engine.js';
 
 // Вероятности сумм шести шаров: сумма = 1, симметрия, пик на 21.
 const total=Object.values(SUM_CHANCE).reduce((a,b)=>a+b,0);
@@ -17,13 +17,18 @@ const f=calculateForecast([], '2026-09-26T11:52');
 assert.deepEqual(f.picks.often.sums,[20,21,22]);
 assert.deepEqual(f.picks.value.sums,[19,21,23]);
 assert.deepEqual(f.final,[20,21,22]);
-const rules={sumPayouts:{"21":2450,"19":2800},combinationPayouts:{THREE_NUMBERS_X2:17500}};
+const rules={ticketPrice:550,sumPayouts:{"21":3850,"19":4400},combinationPayouts:{FOUR_SAME:6600,THREE_NUMBERS_X2:27500,TWO_NUMBERS_X3:7700}};
 const ev=evaluateForecast(f,{combo:[3,3,4,4,6,1]},rules);
 assert.equal(ev.actualSum,21);
 assert.equal(ev.often.hit,true);assert.equal(ev.value.hit,true);
-assert.equal(ev.often.payout,2450);assert.equal(ev.combo.hit,false);
-const ev2=evaluateForecast(f,{combo:[1,1,2,2,6,7-1]},rules);
-assert.equal(ev2.combo.hit,true);
+assert.equal(ev.often.payout,3850);assert.equal(ev.combo.hit,false);
+const ev2=evaluateForecast(f,{combo:[6,1,6,1,6,6]},rules);
+assert.equal(ev2.combo.hit,true);assert.equal(ev2.combo.payout,6600);
+// Категории по настоящим правилам лотереи.
+const keys=c=>combinationCategories(c,rules).map(x=>x.key);
+assert.deepEqual(keys([5,1,1,5,5,1]),['THREE_NUMBERS_X2'],'3 числа × 2 = два числа по три');
+assert.deepEqual(keys([4,4,6,2,6,2]),['TWO_NUMBERS_X3'],'2 числа × 3 = три числа по два');
+assert.equal(evaluateForecast(f,{combo:[1,1,2,2,6,6]},rules).combo.hit,false);
 
 // Полный цикл на временной папке: факт проверяет зафиксированный прогноз и фиксирует следующий.
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fortune-audit-'));

@@ -49,11 +49,19 @@ function renderHome(){
   const cc=comboChance(rules)[COMBO_PICK.key]||0;
   $('#comboPick').textContent=COMBO_PICK.label;
   $('#chCombo').textContent='шанс '+pct(cc);
-  $('#comboNote').textContent=`Например 2-2-5-5-6-6. Выплата ${rub(rules?.combinationPayouts?.[COMBO_PICK.key])} — самая выгодная категория, в 3 раза выгоднее любой другой.`;
+  const T=ticket();
+  $('#retOften').innerHTML=retLine(f.picks.often.sums.length*T,setReturn(f.picks.often.sums));
+  $('#retValue').innerHTML=retLine(f.picks.value.sums.length*T,setReturn(f.picks.value.sums));
+  $('#retCombo').innerHTML=retLine(T,cc*(rules?.combinationPayouts?.[COMBO_PICK.key]||0));
+  $('#payOften').textContent=rub(rules?.sumPayouts?.[f.picks.often.sums[1]]);
+  $('#comboNote').textContent=`4, 5 или 6 одинаковых чисел, например 6-1-6-1-6-6. Выплата ${rub(rules?.combinationPayouts?.[COMBO_PICK.key])}. Лучший возврат среди комбинаций.`;
   renderScore();
   renderLast();
 }
 
+const ticket=()=>Number(rules?.ticketPrice||550);
+const setReturn=sums=>sums.reduce((a,x)=>a+(SUM_CHANCE[x]||0)*Number(rules?.sumPayouts?.[x]||0),0);
+const retLine=(cost,back)=>`Ставка ${rub(cost)} → в среднем возвращается <b>${rub(back)}</b> (${Math.round(cost?back/cost*100:0)}%)`;
 function renderScore(){
   const pool=scoreN?facts.slice(-scoreN):facts;
   const f=calculateForecast(facts,'');
@@ -62,12 +70,13 @@ function renderScore(){
     const ev=evaluateForecast(f,x,rules);
     for(const k of ['often','value','combo']){if(ev[k].hit){acc[k][0]++;acc[k][1]+=ev[k].payout}}
   }
-  const n=pool.length;
-  const row=(label,sub,a,expect)=>`<div class="score-row"><div><b>${label}</b><div class="small">${sub}</div></div><div class="score-num"><b>${a[0]}</b> из ${n}<div class="small">${pct(n?a[0]/n:0)} · ожидается ${pct(expect)}</div></div><div class="score-pay">${rub(a[1])}<div class="small">выплаты</div></div></div>`;
+  const n=pool.length,T=ticket();
+  const row=(label,sub,a,expect,bets)=>{const cost=n*bets*T,net=a[1]-cost;
+    return `<div class="score-row"><div><b>${label}</b><div class="small">${sub}</div></div><div class="score-num"><b>${a[0]}</b> из ${n}<div class="small">${pct(n?a[0]/n:0)} · ожидается ${pct(expect)}</div></div><div class="score-pay">${rub(a[1])}<div class="small">выплаты</div></div><div class="score-net small">Потрачено ${rub(cost)} · итог <b class="${net>=0?'ok':'hot'}">${net>=0?'+':'−'}${rub(Math.abs(net))}</b></div></div>`};
   $('#score').innerHTML=
-    row('Чаще попадать',PICKS.often.sums.join(' · '),acc.often,chanceOf(PICKS.often.sums))+
-    row('Выгоднее',PICKS.value.sums.join(' · '),acc.value,chanceOf(PICKS.value.sums))+
-    row('Комбинация',COMBO_PICK.label,acc.combo,comboChance(rules)[COMBO_PICK.key]||0);
+    row('Чаще попадать',PICKS.often.sums.join(' · '),acc.often,chanceOf(PICKS.often.sums),PICKS.often.sums.length)+
+    row('Выгоднее',PICKS.value.sums.join(' · '),acc.value,chanceOf(PICKS.value.sums),PICKS.value.sums.length)+
+    row('Комбинация',COMBO_PICK.label,acc.combo,comboChance(rules)[COMBO_PICK.key]||0,1);
 }
 
 function renderLast(){
@@ -121,13 +130,14 @@ $('#resultsList').addEventListener('click',e=>{
 });
 
 function renderRules(){
+  const sh=rules.sharedPrize||{},mk=on=>on?'²':'';
   const sums=Object.keys(rules.sumPayouts||{}).map(Number).sort((a,b)=>a-b);
   const best=new Set([...PICKS.often.sums,...PICKS.value.sums]);
-  $('#sumRules').innerHTML=sums.map(s=>`<tr class="${best.has(s)?'pick-row':''}"><td>${s}</td><td>${pct(SUM_CHANCE[s]||0)}</td><td>${rub(rules.sumPayouts[s])}</td></tr>`).join('');
-  const labels={ALL_1:'Все единицы',ALL_2:'Все двойки',ALL_3:'Все тройки',ALL_4:'Все четвёрки',ALL_5:'Все пятёрки',ALL_6:'Все шестёрки',SIX_SAME:'Шесть одинаковых',FIVE_SAME:'Пять одинаковых',THREE_NUMBERS_X2:'3 числа × 2 раза',ALL_SIX_NUMBERS:'Все шесть чисел',ONLY_EVEN:'Только чётные',ONLY_ODD:'Только нечётные',ONLY_1_2_3:'Только 1, 2, 3',ONLY_4_5_6:'Только 4, 5, 6',TWO_NUMBERS_X3:'2 числа × 3 раза',FOUR_SAME:'Четыре одинаковых'};
+  $('#sumRules').innerHTML=sums.map(s=>`<tr class="${best.has(s)?'pick-row':''}"><td>${s}</td><td>${pct(SUM_CHANCE[s]||0)}</td><td>${rub(rules.sumPayouts[s])}${mk((sh.sums||[]).includes(s))}</td></tr>`).join('');
+  const labels={ALL_1:'Все единицы',ALL_2:'Все двойки',ALL_3:'Все тройки',ALL_4:'Все четвёрки',ALL_5:'Все пятёрки',ALL_6:'Все шестёрки',SIX_SAME:'Шесть одинаковых',FIVE_SAME:'Пять одинаковых',THREE_NUMBERS_X2:'3 числа × 2 (5 1 1 5 5 1)',ALL_SIX_NUMBERS:'Все шесть чисел',ONLY_EVEN:'Только чётные',ONLY_ODD:'Только нечётные',ONLY_1_2_3:'Только 1, 2, 3',ONLY_4_5_6:'Только 4, 5, 6',TWO_NUMBERS_X3:'2 числа × 3 (4 4 6 2 6 2)',FOUR_SAME:'Четыре одинаковых (4, 5 или 6)'};
   const ch=comboChance(rules);
-  $('#comboRules').innerHTML=Object.entries(rules.combinationPayouts||{}).sort((a,b)=>b[1]*(ch[b[0]]||0)-a[1]*(ch[a[0]]||0)).map(([k,p])=>`<tr class="${k===COMBO_PICK.key?'pick-row':''}"><td>${labels[k]||k}</td><td>${pct(ch[k]||0)}</td><td>${rub(p)}</td></tr>`).join('');
-  $('#positionRules').innerHTML=Object.entries(rules.positionPayouts||{}).sort((a,b)=>Number(b[0])-Number(a[0])).map(([k,p])=>`<tr><td>${k}</td><td>${pct(posChance(Number(k)))}</td><td>${rub(p)}</td></tr>`).join('');
+  $('#comboRules').innerHTML=Object.entries(rules.combinationPayouts||{}).sort((a,b)=>b[1]*(ch[b[0]]||0)-a[1]*(ch[a[0]]||0)).map(([k,p])=>`<tr class="${k===COMBO_PICK.key?'pick-row':''}"><td>${labels[k]||k}</td><td>${pct(ch[k]||0)}</td><td>${rub(p)}${mk((sh.combinations||[]).includes(k))}</td></tr>`).join('');
+  $('#positionRules').innerHTML=Object.entries(rules.positionPayouts||{}).sort((a,b)=>Number(b[0])-Number(a[0])).map(([k,p])=>`<tr><td>${k}</td><td>${pct(posChance(Number(k)))}</td><td>${rub(p)}${mk((sh.positions||[]).includes(Number(k)))}</td></tr>`).join('');
 }
 
 function renderArchive(){
