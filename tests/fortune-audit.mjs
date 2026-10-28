@@ -28,6 +28,7 @@ for(const rejected of [true,false]){
     fs.writeFileSync(path.join(dir,'package.json'),'{"type":"module"}');
     fs.copyFileSync('engine.js',path.join(dir,'real-engine.js'));
     fs.copyFileSync('scripts/fortune-cycle.mjs',path.join(dir,'scripts/fortune-cycle.mjs'));
+    fs.copyFileSync('scripts/history-compact.mjs',path.join(dir,'scripts/history-compact.mjs'));
     const final=rejected?[19,20,21]:[18,20,21];
     fs.writeFileSync(path.join(dir,'engine.js'),`export * from './real-engine.js';
 import {MODEL_VERSION} from './real-engine.js';

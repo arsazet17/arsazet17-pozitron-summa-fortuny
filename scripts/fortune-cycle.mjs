@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {writeHistory} from './history-compact.mjs';
 import {
   parseLuckyCsv,
   nextScheduledAfter,
@@ -411,7 +412,7 @@ if (!current || current.targetAt !== targetAt) {
 // 5) Всегда сохраняем полученные факты/audit/U.
 // Поэтому поздний факт больше не теряется только из-за прошедшего следующего слота.
 writeJson(LEDGER, ledger);
-writeJson(HISTORY, history);
+writeHistory(HISTORY, history);
 writeJson(CURRENT, current);
 
 console.log(`Last fact: ${lastFact.at} ${lastFact.combo.join('-')} Σ${lastFact.sum}`);
