@@ -52,50 +52,23 @@ export function navigation(facts){
   };
 }
 
-function waveSvg(w){
-  const W=340,Hh=150,L=26,R=6,T=10,B=22,lim=9;
-  const y=v=>T+(Hh-T-B)*(1-(v+lim)/(2*lim));
-  const bw=(W-L-R)/w.length;
-  let g=`<rect x="${L}" y="${y(2)}" width="${W-L-R}" height="${y(-2)-y(2)}" fill="var(--nav-band)"/>`;
-  for(const v of [7,-7])g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--nav-lim)" stroke-dasharray="3 4"/>`;
-  g+=`<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--nav-lim)"/>`;
-  for(const [v,t] of [[7,'+7'],[2,'+2'],[0,'21'],[-2,'−2'],[-7,'−7']])g+=`<text x="${L-4}" y="${y(v)+3}" text-anchor="end">${t}</text>`;
-  w.forEach((x,i)=>{const dv=Math.max(-lim,Math.min(lim,x.sum-21));const cx=L+i*bw+bw*0.15,ww=bw*0.7;const top=Math.min(y(dv),y(0)),h=Math.max(2,Math.abs(y(dv)-y(0)));
-    const cls=CENTER(x.sum)?'var(--green)':x.sum<19?'var(--nav-left)':'var(--nav-right)';
-    g+=`<rect x="${cx}" y="${dv===0?y(0)-1:top}" width="${ww}" height="${h}" rx="2" fill="${cls}"><title>${x.at.slice(11,16)} — Σ ${x.sum}</title></rect>`;
-    if(i%3===0||i===w.length-1)g+=`<text x="${cx+ww/2}" y="${Hh-6}" text-anchor="middle">${x.sum}</text>`;});
-  return `<svg class="nav-wave" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Качка сумм за последние тиражи">${g}</svg>`;
-}
-
 export function renderNavigation(el,facts){
   if(!el) return;
   const n=navigation(facts);
-  if(!n){el.innerHTML='';return}
-  const st=n.now;
-  const lamp=(on,txt)=>`<span class="nav-lamp ${on?'on':''}">${on?'горит':'не горит'}</span>${txt?`<span class="small">${txt}</span>`:''}`;
-  const lastRet=n.ret.last.slice(-5).reverse().map(x=>`<span class="nav-hist ${x.hit?'ok':'no'}" title="${x.at.replace('T',' ')} · серия ${x.run} → выход ${x.exit} → ${x.sum}">${x.hit?'✓':'✗'} ${x.sum}</span>`).join('');
-  el.innerHTML=`
-    <div class="sec-title">🧭 Навигация</div>
-    <div class="small">Как качает сумму вокруг 21: зелёное — центр 19–23 (±2), синее — левый борт, жёлтое — правый. Пунктир — ±7, в этих пределах 90% сумм.</div>
-    ${waveSvg(n.wave)}
-    <div class="nav-grid">
-      <div><div class="k">Качка</div><b>${st.ampLabel}</b><div class="small">размах ${st.a5.toFixed(1).replace('.',',')}</div></div>
-      <div><div class="k">Крен</div><b>${st.heelLabel}</b><div class="small">${st.h5>0?'+':''}${st.h5.toFixed(1).replace('.',',')}</div></div>
-      <div><div class="k">Перекладки</div><b>${st.fl} из 5</b><div class="small">борт ↔ борт</div></div>
-      <div><div class="k">Волна</div><b>${st.dampLabel}</b><div class="small">${st.run?`в центре ${st.run} подряд`:'не в центре'}</div></div>
-    </div>
-    <div class="nav-sig ${st.ret?'lit':''}">
-      <div class="nav-sig-head"><b>🧭 Возврат после серии</b>${lamp(st.ret,st.ret?`серия ${st.retRun} → выход ${esc(n.wave.at(-1).sum)}`:'')}</div>
-      <div class="small">Когда серия из 7+ тиражей в центре заканчивается выходом, следующая сумма возвращалась в центр <b>${n.ret.h} из ${n.ret.n}</b> (${pct(n.ret.n?n.ret.h/n.ret.n:0)}, обычно ${pct(n.base)}).</div>
-      ${lastRet?`<div class="nav-hist-row"><span class="small">последние:</span>${lastRet}</div>`:''}
-    </div>
-    <div class="nav-sig ${st.ctr?'lit':''}">
-      <div class="nav-sig-head"><b>🌊 Удар-контрудар</b>${lamp(st.ctr)}</div>
-      <div class="small">Сильный удар с одного борта и сразу с другого (оба дальше ±3). После него 3 тиража подряд в центре шли в <b>${pct(n.ctr.calmN?n.ctr.calm/n.ctr.calmN:0)}</b> случаев (обычно ${pct(n.baseCalm)}), центр сразу — ${pct(n.ctr.n?n.ctr.h/n.ctr.n:0)}. Было ${n.ctr.n} раз.</div>
-    </div>
-    <div class="nav-out">
-      <div class="k">Куда уходит из центра чаще всего</div>
-      <div class="pick-sums">${n.exitTop.map(x=>`<span class="sum-chip out">${x.sum}<small>${Math.round(x.share*100)}%</small></span>`).join('')}</div>
-      <div class="small">Влево (меньше 19) — ${pct(n.leftShare)}, вправо (больше 23) — ${pct(1-n.leftShare)} всех выходов с 01.08.</div>
-    </div>`;
+  if(!n){el.innerHTML='';el.className='nav-off';return}
+  const st=n.now,w=n.wave,last=w.at(-1),prev=w.at(-2);
+  const sig=[];
+  if(st.ret) sig.push(`<div class="nav-sig lit">
+      <div class="nav-title">🧭 Возможен возврат в центр</div>
+      <div>Серия <b>${st.retRun}</b> тиражей в центре закончилась выходом на <b>${esc(last.sum)}</b>.</div>
+      <div>Следующая сумма скорее вернётся в <b style="white-space:nowrap">19–23</b>: так было <b>${n.ret.h} из ${n.ret.n}</b> раз (обычно ${pct(n.base)}).</div>
+    </div>`);
+  if(st.ctr) sig.push(`<div class="nav-sig lit">
+      <div class="nav-title">🌊 Возможна спокойная полоса</div>
+      <div>Удар с одного борта и сразу с другого: <b>${esc(prev.sum)} → ${esc(last.sum)}</b>.</div>
+      <div>После такого 3 тиража подряд в <b style="white-space:nowrap">19–23</b> шли в <b>${pct(n.ctr.calmN?n.ctr.calm/n.ctr.calmN:0)}</b> случаев (обычно ${pct(n.baseCalm)}).</div>
+    </div>`);
+  if(!sig.length){el.className='nav-off';el.innerHTML='🧭 Сигнала нет';return}
+  el.className='card nav-card';
+  el.innerHTML=sig.join('');
 }
