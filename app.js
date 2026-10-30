@@ -1,6 +1,6 @@
 import {parseLuckyCsv,nextScheduledAfter,evaluateForecast,combinationCategories,calculateForecast,SUM_CHANCE,chanceOf,PICKS,COMBO_PICK} from './engine.js';
 import {renderNavigation} from './navigation.js';
-import {computePositionsPick,positionsBacktest,positionMatches,positionPay} from './positions.mjs';
+import {computePositionsPick,positionsBacktest,positionMatches,positionPay,computePositionsSystem,systemResult,systemChanceAtLeast,systemBacktest} from './positions.mjs';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const nf=new Intl.NumberFormat('ru-RU');
@@ -54,6 +54,15 @@ function renderHome(){
   const T=ticket();
   const pp=(current?.positionsPick&&current.targetAt===target)?current.positionsPick:computePositionsPick(facts,target);
   $('#posDice').innerHTML=diceHtml(pp.dice);
+  const ps=(current?.positionsSystem&&current.targetAt===target)?current.positionsSystem:computePositionsSystem(facts,target);
+  if(ps){
+    const cost=ps.combos*T,wide=ps.moves.map((m,i)=>m.length>1?i+1:0).filter(Boolean);
+    $('#sysGrid').innerHTML=sysGridHtml(ps.moves);
+    $('#chSys').textContent='3+ совп. '+pct(systemChanceAtLeast(ps.moves,3));
+    $('#sysNote').innerHTML=`Один системный билет: на ход${wide.length>1?'ы':''} ${wide.join(' и ')} — по ${ps.moves[wide[0]-1]?.length||3} числа, на остальные по одному. ${ps.combos} комбинаций × ${rub(T)} = <b>${rub(cost)}</b>. Суммы этого билета: <b>${ps.sumMin}–${ps.sumMax}</b>.`;
+    const sc=ps.score;
+    $('#retSys').innerHTML=retLine(cost,ps.combos*posExpect())+'<br>'+(sc?.n?`Живой счёт: билетов <b>${sc.n}</b> · 3+ совпало <b>${sc.h3}</b> · выиграно <b>${rub(sc.won)}</b> из ${rub(sc.spent)}`:'Живой счёт начнётся с первого проверенного тиража.');
+  }
   $('#retOften').innerHTML=retLine(f.picks.often.sums.length*T,setReturn(f.picks.often.sums));
   $('#retValue').innerHTML=retLine(f.picks.value.sums.length*T,setReturn(f.picks.value.sums));
   $('#retCombo').innerHTML=retLine(T,cc*(rules?.combinationPayouts?.[COMBO_PICK.key]||0));
@@ -70,6 +79,10 @@ const ticket=()=>Number(rules?.ticketPrice||550);
 const setReturn=sums=>sums.reduce((a,x)=>a+(SUM_CHANCE[x]||0)*Number(rules?.sumPayouts?.[x]||0),0);
 const retLine=(cost,back)=>`Ставка ${rub(cost)} → в среднем возвращается <b>${rub(back)}</b> (${Math.round(cost?back/cost*100:0)}%)`;
 const diceHtml=(dice,actual)=>(dice||[]).map((v,i)=>`<span class="die${actual?(Number(actual[i])===Number(v)?' hit':' miss'):''}"><small>${i+1}</small>${v}</span>`).join('');
+const sysGridHtml=(moves,actual)=>moves.map((m,i)=>`<div class="sys-col"><small>${i+1}</small>${m.map(v=>`<span class="die${actual?(Number(actual[i])===v?' hit':' miss'):''}">${v}</span>`).join('')}</div>`).join('');
+const posExpect=()=>[2,3,4,5,6].reduce((a,k)=>a+posChance(k)*Number(rules?.positionPayouts?.[k]||0),0);
+let sysCache={len:0,rows:[]};
+const sysBacktest=()=>{if(sysCache.len!==facts.length)sysCache={len:facts.length,rows:systemBacktest(facts,rules)};return sysCache.rows};
 let btCache={len:0,rows:[]};
 const posBacktest=()=>{if(btCache.len!==facts.length)btCache={len:facts.length,rows:positionsBacktest(facts,rules)};return btCache.rows};
 function renderScore(){
@@ -86,13 +99,19 @@ function renderScore(){
   $('#score').innerHTML=
     row('Чаще попадать',PICKS.often.sums.join(' · '),acc.often,chanceOf(PICKS.often.sums),PICKS.often.sums.length)+
     row('Выгоднее',PICKS.value.sums.join(' · '),acc.value,chanceOf(PICKS.value.sums),PICKS.value.sums.length)+
-    row('Комбинация',COMBO_PICK.label,acc.combo,comboChance(rules)[COMBO_PICK.key]||0,1)+posRow();
+    row('Комбинация',COMBO_PICK.label,acc.combo,comboChance(rules)[COMBO_PICK.key]||0,1)+posRow()+sysRow();
 }
 
 function posRow(){
   const all=posBacktest();const rows=scoreN?all.slice(-scoreN):all;const n=rows.length,T=ticket();
   const h2=rows.filter(r=>r.matches>=2).length,h3=rows.filter(r=>r.matches>=3).length,pay=rows.reduce((a,r)=>a+r.payout,0),cost=n*T,net=pay-cost;
   return `<div class="score-row"><div><b>🎲 Позиции</b><div class="small">кубики по ходам</div></div><div class="score-num"><b>${h2}</b> из ${n}<div class="small">2+ совпадения ${pct(n?h2/n:0)} · ожидается 26,3% · 3+: ${h3}</div></div><div class="score-pay">${rub(pay)}<div class="small">выплаты</div></div><div class="score-net small">Потрачено ${rub(cost)} · итог <b class="${net>=0?'ok':'hot'}">${net>=0?'+':'−'}${rub(Math.abs(net))}</b>${scoreN?'':' · с 01.08'}</div></div>`;
+}
+function sysRow(){
+  const all=sysBacktest();const rows=scoreN?all.slice(-scoreN):all;const n=rows.length;
+  const h3=rows.filter(r=>r.best>=3).length,h4=rows.filter(r=>r.best>=4).length,pay=rows.reduce((a,r)=>a+r.payout,0),cost=rows.reduce((a,r)=>a+r.cost,0),net=pay-cost;
+  const exp=systemChanceAtLeast([[1],[1],[1],[1],[1,2,3],[1,2,3]],3);
+  return `<div class="score-row"><div><b>🎲 Система</b><div class="small">9 комбинаций по ${rub(ticket())}</div></div><div class="score-num"><b>${h3}</b> из ${n}<div class="small">3+ совпадения ${pct(n?h3/n:0)} · ожидается ${pct(exp)} · 4+: ${h4}</div></div><div class="score-pay">${rub(pay)}<div class="small">выплаты</div></div><div class="score-net small">Потрачено ${rub(cost)} · итог <b class="${net>=0?'ok':'hot'}">${net>=0?'+':'−'}${rub(Math.abs(net))}</b>${scoreN?'':' · с 01.08'}</div></div>`;
 }
 function renderLast(){
   const f=calculateForecast(facts,'');
@@ -141,8 +160,12 @@ async function renderResults(){
     const pk=fc.positionsPick;let posLine='';
     if(pk?.dice){const pm=actual?positionMatches(pk.dice,actual.combo):null,pay=pm!=null?positionPay(pm,rules):0;
       posLine=`<div class="res-line pos-line"><span>🎲 Поз.</span><span class="dice-row sm">${diceHtml(pk.dice,actual?.combo)}</span><span>${pm==null?'':pm>=2?`<b class="ok">${pm} совп · ${rub(pay)}</b>`:`<span class="no">${pm} совп</span>`}</span></div>`}
+    const sy=fc.positionsSystem;let sysLine='';
+    if(sy?.moves){const r=actual?systemResult(sy.moves,actual.combo,rules):null;
+      const chips=sy.moves.map((m,i)=>`<span class="sys-chip${actual?(m.includes(Number(actual.combo[i]))?' hit':' miss'):''}">${m.join('·')}</span>`).join('');
+      sysLine=`<div class="res-line sys-line"><span>🎲 Сист.</span><span class="sys-chips">${chips}</span><span>${r==null?'<span class="wait">ждём</span>':(r.best>=3?`<b class="ok">${r.best} совп · ${rub(r.payout)}</b>`:r.best===2?`<b class="amber">2 совп · ${rub(r.payout)}</b>`:`<span class="no">${r.best} совп</span>`)+`<small class="sys-cost">билет ${rub(r.cost)}</small>`}</span></div>`}
     const open=openResults.has(e.targetAt);
-    return `<div class="card res${open?' open':''}" data-at="${esc(e.targetAt)}">${head}<div class="res-body">${actual?`<div class="balls">${ballsHtml(actual.combo)}</div>`:''}${lines}${posLine}${warnLine}${extra}</div></div>`;
+    return `<div class="card res${open?' open':''}" data-at="${esc(e.targetAt)}">${head}<div class="res-body">${actual?`<div class="balls">${ballsHtml(actual.combo)}</div>`:''}${lines}${posLine}${sysLine}${warnLine}${extra}</div></div>`;
   }).join('');
 }
 const openResults=new Set();

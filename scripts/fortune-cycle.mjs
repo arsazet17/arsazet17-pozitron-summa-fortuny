@@ -9,7 +9,7 @@ import {
   MODEL_VERSION
 } from '../engine.js';
 import {computeExitWarning,exitOutcome} from '../exit-signal.mjs';
-import {computePositionsPick,positionMatches,positionPay} from '../positions.mjs';
+import {computePositionsPick,positionMatches,positionPay,computePositionsSystem,systemResult} from '../positions.mjs';
 
 const ROOT = path.resolve(process.argv[2] || process.cwd());
 const DATA = path.join(ROOT, 'data');
@@ -153,6 +153,11 @@ for (const entry of history) {
     const pm = positionMatches(entry.forecast.positionsPick.dice, actual.combo);
     entry.result.posMatches = pm; entry.result.posPayout = positionPay(pm, rules);
   }
+  if (entry.forecast?.positionsSystem?.moves) {
+    const sr = systemResult(entry.forecast.positionsSystem.moves, actual.combo, rules);
+    entry.result.posSysBest = sr.best; entry.result.posSysPayout = sr.payout; entry.result.posSysCost = sr.cost;
+    console.log(`SYSTEM_CHECKED ${entry.targetAt}: ${sr.best} совп · ${sr.payout} из ${sr.cost}`);
+  }
   ledgerByAt.set(entry.targetAt, {
     at: entry.targetAt,
     status: ev.often.hit ? 'H' : 'M',
@@ -199,6 +204,23 @@ if (!current || current.targetAt !== targetAt) {
       console.log(`POSITIONS ${targetAt} · ${forecast.positionsPick.dice.join('-')}`);
     } catch (err) {
       console.log(`POSITIONS_ERROR ${err.message}`);
+    }
+    try {
+      const sys = computePositionsSystem(facts, targetAt);
+      if (sys) {
+        // живой счёт: только системные билеты, зафиксированные до тиража
+        const done = history.filter(e => e?.checked && e.result?.posSysCost);
+        sys.score = {
+          n: done.length,
+          h3: done.filter(e => e.result.posSysBest >= 3).length,
+          won: done.reduce((a, e) => a + (e.result.posSysPayout || 0), 0),
+          spent: done.reduce((a, e) => a + e.result.posSysCost, 0)
+        };
+        forecast.positionsSystem = sys;
+        console.log(`SYSTEM ${targetAt} · ${sys.moves.map(m => m.join('/')).join(' | ')} · ${sys.combos} комб.`);
+      }
+    } catch (err) {
+      console.log(`SYSTEM_ERROR ${err.message}`);
     }
     try {
       const warn = computeExitWarning(facts, targetAt);

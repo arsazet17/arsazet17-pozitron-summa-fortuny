@@ -63,6 +63,9 @@ try{
   assert.equal(cur.exitWarn?.on,false,'сигнал ухода посчитан (мало данных — не горит)');
   assert.equal(cur.exitWarn?.score?.n,0);
   assert.equal(cur.positionsPick?.dice?.length,6,'кубики на 6 ходов зафиксированы');
+  assert.equal(cur.positionsSystem?.moves?.length,6,'системный билет на 6 ходов зафиксирован');
+  assert.equal(cur.positionsSystem?.combos,9,'системный билет — 9 комбинаций');
+  assert.equal(cur.positionsSystem?.score?.n,0);
   const led=read('forecast-ledger.json');
   assert.equal(led.algorithmTracking,undefined,'тяжёлое слежение удалено');
   assert.ok(led.recent.some(x=>x.at==='2026-09-26T11:52'&&x.status==='H'&&x.valueHit===true));
