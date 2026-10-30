@@ -46,3 +46,12 @@ body{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:trans
 .dice-row.sm{gap:4px;margin:0}.dice-row.sm .die{width:26px;height:26px;font-size:.9rem;border-radius:7px;box-shadow:none}.dice-row.sm .die small{display:none}
 .die.hit{background:var(--green);color:#0d2a0f}.die.miss{opacity:.55}
 .res-line.pos-line{grid-template-columns:62px 1fr auto}.pos-line .dice-row.sm{flex-wrap:nowrap;gap:3px}.pos-line .dice-row.sm .die{width:23px;height:24px;font-size:.85rem}
+/* 2.3.2: кубики и шары всегда в одну строку при любом шрифте и ширине */
+.dice-row:not(.sm){display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;max-width:300px;flex-wrap:nowrap}
+.dice-row:not(.sm) .die{width:100%;height:auto;aspect-ratio:1/1;max-width:46px;font-size:clamp(1rem,5vw,1.3rem);justify-self:center}
+.dice-row.sm{flex-wrap:nowrap}
+.last-head,.last-row{grid-template-columns:62px minmax(0,1fr) 34px 44px 46px 42px}
+.mini-balls{white-space:nowrap;overflow:hidden;font-size:.84rem;letter-spacing:0}
+@media(max-width:560px){.last-head,.last-row{grid-template-columns:50px minmax(0,1fr) 26px 36px 40px 36px;gap:4px}.mini-balls{font-size:.8rem}}
+.mini-balls{font-family:inherit;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.mini-balls{font-size:min(.84rem,3.6vw)}

@@ -98,7 +98,7 @@ function renderLast(){
   const f=calculateForecast(facts,'');
   $('#lastRows').innerHTML=facts.slice(-12).reverse().map(x=>{
     const ev=evaluateForecast(f,x,rules);
-    return `<div class="last-row"><span>${Number(x.number)}<small>${x.at.slice(11,16)}</small></span><span class="mini-balls">${x.combo.join(' ')}</span><span class="last-sum">${x.sum}</span><span>${mark(ev.often.hit)}</span><span>${mark(ev.value.hit)}</span><span>${mark(ev.combo.hit)}</span></div>`;
+    return `<div class="last-row"><span>${Number(x.number)}<small>${x.at.slice(11,16)}</small></span><span class="mini-balls">${x.combo.join('\u2009')}</span><span class="last-sum">${x.sum}</span><span>${mark(ev.often.hit)}</span><span>${mark(ev.value.hit)}</span><span>${mark(ev.combo.hit)}</span></div>`;
   }).join('');
 }
 
