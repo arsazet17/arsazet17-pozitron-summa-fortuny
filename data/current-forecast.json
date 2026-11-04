@@ -1,1 +1,113 @@
-null
+{
+  "modelVersion": "REAL-RULES-2026-10-28",
+  "targetAt": "2026-11-04T13:52",
+  "picks": {
+    "often": {
+      "label": "Чаще попадать",
+      "sums": [
+        20,
+        21,
+        22
+      ],
+      "chance": 0.27379115226337447,
+      "hint": "самые частые суммы"
+    },
+    "value": {
+      "label": "Выгоднее",
+      "sums": [
+        19,
+        21,
+        23
+      ],
+      "chance": 0.2602880658436214,
+      "hint": "самый большой возврат среди сумм"
+    }
+  },
+  "comboPick": {
+    "key": "FOUR_SAME",
+    "label": "Четыре одинаковых",
+    "hint": "самый большой возврат среди комбинаций"
+  },
+  "final": [
+    20,
+    21,
+    22
+  ],
+  "v1": [
+    20
+  ],
+  "v2": [
+    21
+  ],
+  "v3": [
+    22
+  ],
+  "locked": true,
+  "fixedAt": "2026-11-04T10:50:41.672Z",
+  "positionsPick": {
+    "method": "MARKOV-POS+ODD3",
+    "dice": [
+      1,
+      4,
+      5,
+      1,
+      1,
+      1
+    ],
+    "due": []
+  },
+  "positionsSystem": {
+    "method": "SYS-4x1+2x3",
+    "moves": [
+      [
+        1,
+        4,
+        6
+      ],
+      [
+        4
+      ],
+      [
+        5
+      ],
+      [
+        1
+      ],
+      [
+        1
+      ],
+      [
+        1,
+        4,
+        6
+      ]
+    ],
+    "combos": 9,
+    "sumMin": 13,
+    "sumMax": 23,
+    "score": {
+      "n": 509,
+      "h3": 101,
+      "won": 1286300,
+      "spent": 2519550
+    }
+  },
+  "exitWarn": {
+    "model": "EXIT-LOGIT-2026-10-28",
+    "on": true,
+    "p": 0.6233,
+    "threshold": 0.6049,
+    "side": "left",
+    "sums": [
+      17,
+      18
+    ],
+    "pLeft": 0.56,
+    "trainedOn": 9115,
+    "score": {
+      "n": 72,
+      "hit": 8,
+      "out": 35
+    }
+  }
+}
