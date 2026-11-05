@@ -67,6 +67,10 @@ function renderHome(){
   $('#retValue').innerHTML=retLine(f.picks.value.sums.length*T,setReturn(f.picks.value.sums));
   $('#retCombo').innerHTML=retLine(T,cc*(rules?.combinationPayouts?.[COMBO_PICK.key]||0));
   $('#payOften').textContent=rub(rules?.sumPayouts?.[f.picks.often.sums[1]]);
+  {const sp=rules?.sumPayouts||{},pp=rules?.positionPayouts||{};
+   $('#payValue').textContent=`${rub(sp[19])} вместо ${rub(sp[21])}`;
+   $('#posPrice').textContent='ставка '+rub(T);$('#scorePrice').textContent=rub(T);
+   $('#posNote').textContent=`Число на каждый ход по порядку. 2 совпадения — ${rub(pp[2])}, 3 — ${rub(pp[3])}, 4 — ${rub(pp[4])}, 5 — ${rub(pp[5])}.`;}
   $('#comboNote').textContent=`4, 5 или 6 одинаковых чисел, например 6-1-6-1-6-6. Выплата ${rub(rules?.combinationPayouts?.[COMBO_PICK.key])}. Лучший возврат среди комбинаций.`;
   renderScore();
   renderLast();
@@ -75,7 +79,7 @@ function renderHome(){
   const wn=$('#warnNote');if(wn){wn.hidden=!warn?.on;wn.innerHTML=warn?.on?`⚠️ Возможен уход ${warn.side==='left'?'влево':'вправо'} — <b>${warn.sums.join(' · ')}</b>. Подробнее в навигации ниже.`:''}
 }
 
-const ticket=()=>Number(rules?.ticketPrice||550);
+const ticket=()=>Number(rules?.ticketPrice||600);
 const setReturn=sums=>sums.reduce((a,x)=>a+(SUM_CHANCE[x]||0)*Number(rules?.sumPayouts?.[x]||0),0);
 const retLine=(cost,back)=>`Ставка ${rub(cost)} → в среднем возвращается <b>${rub(back)}</b> (${Math.round(cost?back/cost*100:0)}%)`;
 const diceHtml=(dice,actual)=>(dice||[]).map((v,i)=>`<span class="die${actual?(Number(actual[i])===Number(v)?' hit':' miss'):''}"><small>${i+1}</small>${v}</span>`).join('');

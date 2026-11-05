@@ -10,7 +10,7 @@ export const POS_RULES=Object.freeze({
   oddGap:3
 });
 
-const PAY_DEFAULT={2:600,3:1700,4:6000,5:55000,6:1200000};
+const PAY_DEFAULT={2:650,3:1800,4:6500,5:60000,6:1200000};
 
 // Модель «что чаще шло на этом ходу после прошлого числа на этом же ходу».
 export function makePositionsModel(rules=POS_RULES){
@@ -94,7 +94,7 @@ export function systemResult(moves,combo,rules){
     const nd=new Array(dist.length+1).fill(0);dist.forEach((w,k)=>{nd[k]+=w*miss;nd[k+1]+=w*hit});dist=nd}
   const best=dist.reduce((b,w,k)=>w>0?k:b,0);
   const payout=dist.reduce((a,w,k)=>a+w*positionPay(k,rules),0);
-  const cost=moves.reduce((a,s)=>a*s.length,1)*Number(rules?.ticketPrice||550);
+  const cost=moves.reduce((a,s)=>a*s.length,1)*Number(rules?.ticketPrice||600);
   return {best,payout,cost};
 }
 
