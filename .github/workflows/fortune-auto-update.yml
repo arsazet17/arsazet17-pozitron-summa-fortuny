@@ -75,7 +75,8 @@ jobs:
             data/fortune-archive.csv \
             data/current-forecast.json \
             data/forecast-history.json \
-            data/forecast-ledger.json
+            data/forecast-ledger.json \
+            data/rules.json
           then
             echo "No new fact and next forecast is already fixed"
             exit 0
@@ -88,7 +89,8 @@ jobs:
             data/fortune-archive.csv \
             data/current-forecast.json \
             data/forecast-history.json \
-            data/forecast-ledger.json
+            data/forecast-ledger.json \
+            data/rules.json
 
           git commit -m "Fortune cycle: fact check and next forecast"
 
