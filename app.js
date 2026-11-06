@@ -76,6 +76,7 @@ function renderHome(){
   renderLast();
   const warn=(current&&current.targetAt===target)?current.exitWarn:null;
   renderNavigation($('#navCard'),facts,warn);
+  {const pn=$('#promoNote');if(pn){pn.hidden=!rules?.priceNote;pn.innerHTML=rules?.priceNote?`🏷 <b>Акция: билет ${rub(ticket())}</b>. Все ставки и выплаты ниже уже пересчитаны.`:''}}
   const wn=$('#warnNote');if(wn){wn.hidden=!warn?.on;wn.innerHTML=warn?.on?`⚠️ Возможен уход ${warn.side==='left'?'влево':'вправо'} — <b>${warn.sums.join(' · ')}</b>. Подробнее в навигации ниже.`:''}
 }
 
@@ -180,6 +181,8 @@ $('#resultsList').addEventListener('click',e=>{
 });
 
 function renderRules(){
+  $('#rulesPrice').textContent=rub(ticket());$('#rulesPrice2').textContent=rub(ticket());
+  const pn=$('#rulesPromo');if(pn){pn.hidden=!rules.priceNote;pn.textContent=rules.priceNote?'🏷 '+rules.priceNote+'.':''}
   const sh=rules.sharedPrize||{},mk=on=>on?'²':'';
   const sums=Object.keys(rules.sumPayouts||{}).map(Number).sort((a,b)=>a-b);
   const best=new Set([...PICKS.often.sums,...PICKS.value.sums]);

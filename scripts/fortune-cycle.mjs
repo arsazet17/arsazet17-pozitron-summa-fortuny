@@ -9,6 +9,7 @@ import {
   MODEL_VERSION
 } from '../engine.js';
 import {computeExitWarning,exitOutcome} from '../exit-signal.mjs';
+import {syncRulesPrice,rulesForPrice,pricesByAt} from './price-sync.mjs';
 import {computePositionsPick,positionMatches,positionPay,computePositionsSystem,systemResult} from '../positions.mjs';
 
 const ROOT = path.resolve(process.argv[2] || process.cwd());
@@ -111,7 +112,24 @@ function slimLedgerRow(r) {
 
 mergeLuckyPage();
 
-const rules = readJson(RULES, {});
+let rules = readJson(RULES, {});
+// Цена билета из данных лотереи: акция или новая цена — выплаты пересчитываются сами.
+const luckyDocs = readJson(LUCKY_PAGE, {}).docs || [];
+const drawPrice = pricesByAt(luckyDocs);
+try {
+  const synced = syncRulesPrice(rules, luckyDocs);
+  if (synced) {
+    writeJson(RULES, synced);
+    console.log(`PRICE ${rules.ticketPrice} → ${synced.ticketPrice} ₽ · выплаты пересчитаны`);
+    rules = synced;
+  }
+} catch (err) {
+  console.log(`PRICE_ERROR ${err.message}`);
+}
+const rulesAt = at => {
+  const p = drawPrice.get(at);
+  return p && p !== Number(rules.ticketPrice) ? rulesForPrice(rules, p, luckyDocs) : rules;
+};
 const rawLedger = readJson(LEDGER, {recent:[]});
 const ledger = {
   modelVersion: MODEL_VERSION,
@@ -132,7 +150,8 @@ for (const entry of history) {
   if (!entry || entry.checked) continue;
   const actual = byAt.get(entry.targetAt);
   if (!actual) continue;
-  const ev = evaluateForecast(entry.forecast, actual, rules);
+  const rr = rulesAt(entry.targetAt);
+  const ev = evaluateForecast(entry.forecast, actual, rr);
   entry.checked = true;
   entry.checkedAt = nowDate().toISOString();
   entry.actual = actual;
@@ -151,10 +170,10 @@ for (const entry of history) {
   if (ex) { entry.result.exitWarnOn = true; entry.result.exitHit = ex.hit; entry.result.exitOut = ex.left; }
   if (entry.forecast?.positionsPick?.dice) {
     const pm = positionMatches(entry.forecast.positionsPick.dice, actual.combo);
-    entry.result.posMatches = pm; entry.result.posPayout = positionPay(pm, rules);
+    entry.result.posMatches = pm; entry.result.posPayout = positionPay(pm, rr);
   }
   if (entry.forecast?.positionsSystem?.moves) {
-    const sr = systemResult(entry.forecast.positionsSystem.moves, actual.combo, rules);
+    const sr = systemResult(entry.forecast.positionsSystem.moves, actual.combo, rr);
     entry.result.posSysBest = sr.best; entry.result.posSysPayout = sr.payout; entry.result.posSysCost = sr.cost;
     console.log(`SYSTEM_CHECKED ${entry.targetAt}: ${sr.best} совп · ${sr.payout} из ${sr.cost}`);
   }

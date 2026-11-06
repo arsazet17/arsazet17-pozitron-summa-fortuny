@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#240708">
 <title>Сумма Фортуны</title>
-<link rel="manifest" href="./manifest.webmanifest?v=2.3.5">
-<link rel="stylesheet" href="./styles.css?v=2.3.5">
-<link rel="stylesheet" href="./update-app.css?v=2.3.5">
+<link rel="manifest" href="./manifest.webmanifest?v=2.3.6">
+<link rel="stylesheet" href="./styles.css?v=2.3.6">
+<link rel="stylesheet" href="./update-app.css?v=2.3.6">
 </head>
 <body>
 <div class="app">
@@ -15,7 +15,7 @@
   <div>
     <div class="title-row">
       <div class="title">Сумма Фортуны</div>
-      <span class="app-version" id="appVersion">v2.3.5</span>
+      <span class="app-version" id="appVersion">v2.3.6</span>
     </div>
     <div class="sub">Что ставить на следующий тираж</div>
   </div>
@@ -39,6 +39,7 @@
 
   <div class="card">
     <div class="sec-title">🎯 Ставка на тираж <span class="hot" id="betTarget"></span></div>
+    <div class="warn-note" id="promoNote" hidden></div>
     <div class="warn-note" id="warnNote" hidden></div>
     <div class="pick-list">
       <div class="pick">
@@ -101,7 +102,7 @@
 
 <section class="page" id="rules">
   <div class="title">Правила</div><div class="sub">Выплаты и шанс каждого исхода</div>
-  <div class="card notice"><div class="ico">⚠️</div><div>Ставка — <b id="rulesPrice">550 ₽</b>, выигрыш = 550 ₽ × коэффициент. Суперприз по номеру билета <b class="hot">не используется</b>.<div class="small" style="margin-top:6px">² Выигрыш делится поровну между всеми выигрышными билетами по данной категории.</div></div></div>
+  <div class="card notice"><div class="ico">⚠️</div><div>Ставка — <b id="rulesPrice">550 ₽</b>, выигрыш = <span id="rulesPrice2">550 ₽</span> × коэффициент. Цена берётся из данных лотереи, при акциях выплаты пересчитываются сами.<div class="small amber" id="rulesPromo" hidden></div> Суперприз по номеру билета <b class="hot">не используется</b>.<div class="small" style="margin-top:6px">² Выигрыш делится поровну между всеми выигрышными билетами по данной категории.</div></div></div>
   <div class="card"><h2>Сумма</h2><table class="table"><thead><tr><td>Σ</td><td>Шанс</td><td>Выплата</td></tr></thead><tbody id="sumRules"></tbody></table></div>
   <div class="card"><h2>Комбинация</h2><table class="table"><thead><tr><td>Категория</td><td>Шанс</td><td>Выплата</td></tr></thead><tbody id="comboRules"></tbody></table></div>
   <div class="card"><h2>Позиции</h2><table class="table"><thead><tr><td>Совпало позиций</td><td>Шанс</td><td>Выплата</td></tr></thead><tbody id="positionRules"></tbody></table></div>
@@ -124,6 +125,6 @@
 <button data-page="archive"><span class="nicon">☰</span>Архив</button>
 </nav>
 
-<script type="module" src="./app.js?v=2.3.5"></script>
-<script type="module" src="./update-app.js?v=2.3.5"></script>
+<script type="module" src="./app.js?v=2.3.6"></script>
+<script type="module" src="./update-app.js?v=2.3.6"></script>
 </body></html>
