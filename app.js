@@ -79,7 +79,7 @@ function renderHome(){
   const wn=$('#warnNote');if(wn){wn.hidden=!warn?.on;wn.innerHTML=warn?.on?`⚠️ Возможен уход ${warn.side==='left'?'влево':'вправо'} — <b>${warn.sums.join(' · ')}</b>. Подробнее в навигации ниже.`:''}
 }
 
-const ticket=()=>Number(rules?.ticketPrice||600);
+const ticket=()=>Number(rules?.ticketPrice||550);
 const setReturn=sums=>sums.reduce((a,x)=>a+(SUM_CHANCE[x]||0)*Number(rules?.sumPayouts?.[x]||0),0);
 const retLine=(cost,back)=>`Ставка ${rub(cost)} → в среднем возвращается <b>${rub(back)}</b> (${Math.round(cost?back/cost*100:0)}%)`;
 const diceHtml=(dice,actual)=>(dice||[]).map((v,i)=>`<span class="die${actual?(Number(actual[i])===Number(v)?' hit':' miss'):''}"><small>${i+1}</small>${v}</span>`).join('');
