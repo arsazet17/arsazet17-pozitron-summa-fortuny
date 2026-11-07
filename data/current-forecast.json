@@ -1,6 +1,6 @@
 {
   "modelVersion": "REAL-RULES-2026-10-28",
-  "targetAt": "2026-11-07T19:07",
+  "targetAt": "2026-11-07T19:22",
   "picks": {
     "often": {
       "label": "Чаще попадать",
@@ -43,16 +43,16 @@
     22
   ],
   "locked": true,
-  "fixedAt": "2026-11-07T15:55:30.387Z",
+  "fixedAt": "2026-11-07T16:15:41.319Z",
   "positionsPick": {
     "method": "MARKOV-POS+ODD3",
     "dice": [
-      4,
-      4,
-      4,
+      6,
+      1,
       2,
       2,
-      1
+      2,
+      2
     ],
     "due": []
   },
@@ -60,52 +60,52 @@
     "method": "SYS-4x1+2x3",
     "moves": [
       [
-        4
-      ],
-      [
-        4
-      ],
-      [
         1,
         4,
-        5
+        6
       ],
       [
-        1,
-        2,
-        3
+        1
       ],
       [
         2
       ],
       [
-        1
+        2,
+        3,
+        4
+      ],
+      [
+        2
+      ],
+      [
+        2
       ]
     ],
     "combos": 9,
-    "sumMin": 13,
-    "sumMax": 19,
+    "sumMin": 10,
+    "sumMax": 17,
     "score": {
-      "n": 816,
+      "n": 817,
       "h3": 165,
       "won": 2018600,
-      "spent": 3895200
+      "spent": 3897675
     }
   },
   "exitWarn": {
     "model": "EXIT-LOGIT-2026-10-28",
-    "on": true,
-    "p": 0.605,
-    "threshold": 0.6031,
+    "on": false,
+    "p": 0.5808,
+    "threshold": 0.6029,
     "side": "left",
     "sums": [
       17,
       18
     ],
-    "pLeft": 0.511,
-    "trainedOn": 9424,
+    "pLeft": 0.537,
+    "trainedOn": 9425,
     "score": {
-      "n": 119,
+      "n": 120,
       "hit": 12,
       "out": 61
     }
